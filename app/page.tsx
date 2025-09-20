@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   CloudRain,
   Sprout,
@@ -613,6 +615,234 @@ export default function FarmingPlatformLanding() {
   const [name, setName] = useState("")
   const [language, setLanguage] = useState<"en" | "hi" | "mr">("en")
 
+  // --- Farm Health Monitoring state ---
+  type HealthLog = {
+    id: string
+    timestamp: string // ISO string or datetime-local
+    soilMoisture?: number
+    soilPH?: number
+    temperature?: number
+    ndvi?: number
+    soilType?: string
+    notes?: string
+  }
+
+  const [healthLogs, setHealthLogs] = useState<HealthLog[]>([])
+  const [entryDate, setEntryDate] = useState<string>(() => {
+    const d = new Date()
+    // datetime-local requires no seconds and no Z
+    const pad = (n: number) => n.toString().padStart(2, "0")
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  })
+  const [entryMoisture, setEntryMoisture] = useState<string>("")
+  const [entryPH, setEntryPH] = useState<string>("")
+  const [entryTemp, setEntryTemp] = useState<string>("")
+  const [entryNDVI, setEntryNDVI] = useState<string>("")
+  const [entrySoilType, setEntrySoilType] = useState<string>("")
+  const [entryNotes, setEntryNotes] = useState<string>("")
+
+  const addHealthEntry = () => {
+    const hasAny = [entryMoisture, entryPH, entryTemp, entryNDVI, entrySoilType, entryNotes]
+      .some((v) => (typeof v === "string" ? v.trim() !== "" : v !== undefined))
+    if (!hasAny) {
+      // lazy import to avoid circulars; using existing toast hook API
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Add at least one measurement", description: "Enter moisture, pH, temperature, NDVI, soil type or a note." })
+      )
+      return
+    }
+    const newLog: HealthLog = {
+      id: Math.random().toString(36).slice(2),
+      timestamp: new Date(entryDate).toISOString(),
+      soilMoisture: entryMoisture ? Number(entryMoisture) : undefined,
+      soilPH: entryPH ? Number(entryPH) : undefined,
+      temperature: entryTemp ? Number(entryTemp) : undefined,
+      ndvi: entryNDVI ? Number(entryNDVI) : undefined,
+      soilType: entrySoilType || undefined,
+      notes: entryNotes || undefined,
+    }
+    setHealthLogs((prev) => [newLog, ...prev])
+    // reset a few fields, keep date for rapid entry
+    setEntryMoisture("")
+    setEntryPH("")
+    setEntryTemp("")
+    setEntryNDVI("")
+    setEntrySoilType("")
+    setEntryNotes("")
+  }
+
+  const addSampleData = () => {
+    const now = Date.now()
+    const samples: HealthLog[] = [0, 1, 2].map((i) => {
+      const ts = new Date(now - i * 1000 * 60 * 60 * 24).toISOString()
+      const soilTypes = ["Loam", "Sandy", "Clay", "Black", "Silt"]
+      return {
+        id: Math.random().toString(36).slice(2),
+        timestamp: ts,
+        soilMoisture: Math.round((60 + Math.random() * 25) * 10) / 10, // 60-85%
+        soilPH: Math.round((6 + Math.random() * 1.5) * 10) / 10, // 6.0-7.5
+        temperature: Math.round((24 + Math.random() * 6) * 10) / 10, // 24-30 C
+        ndvi: Math.round((0.65 + Math.random() * 0.25) * 100) / 100, // 0.65-0.9
+        soilType: soilTypes[Math.floor(Math.random() * soilTypes.length)],
+        notes: "Sample reading",
+      }
+    })
+    setHealthLogs((prev) => [...samples, ...prev])
+  }
+
+  // --- Weather & location for Yield Prediction ---
+  type WeatherData = {
+    temperature?: number
+    relative_humidity?: number
+    precipitation?: number
+    wind_speed?: number
+    time?: string
+  }
+
+  const LOCATION = { lat: 18.589028, lon: 73.927389, dms: "18°35'20.5\"N 73°55'38.6\"E" } // precise DMS
+  const [weather, setWeather] = useState<WeatherData | null>(null)
+  const [weatherLoading, setWeatherLoading] = useState<boolean>(false)
+  const [weatherError, setWeatherError] = useState<string | null>(null)
+
+  async function fetchWeather() {
+    try {
+      setWeatherError(null)
+      setWeatherLoading(true)
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${LOCATION.lat}&longitude=${LOCATION.lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m`
+      const res = await fetch(url)
+      const data = await res.json()
+      const cur = data?.current
+      const w: WeatherData = {
+        temperature: cur?.temperature_2m,
+        relative_humidity: cur?.relative_humidity_2m,
+        precipitation: cur?.precipitation,
+        wind_speed: cur?.wind_speed_10m,
+        time: cur?.time,
+      }
+      setWeather(w)
+    } catch (e: any) {
+      setWeatherError("Unable to fetch weather.")
+    } finally {
+      setWeatherLoading(false)
+    }
+  }
+
+  // Fetch weather when entering the yield page
+  React.useEffect(() => {
+    if (isLoggedIn && currentPage === "yield-prediction") {
+      fetchWeather()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, currentPage])
+
+  // Compute averages from logs
+  const avg = React.useMemo(() => {
+    if (!healthLogs.length) return null
+    const n = healthLogs.length
+    const sum = (arr: (number | undefined)[]) => arr.filter((x): x is number => typeof x === "number").reduce((a, b) => a + b, 0)
+    const cnt = (arr: (number | undefined)[]) => arr.filter((x): x is number => typeof x === "number").length
+    const soilMoistureVals = healthLogs.map((l) => l.soilMoisture)
+    const phVals = healthLogs.map((l) => l.soilPH)
+    const tempVals = healthLogs.map((l) => l.temperature)
+    const ndviVals = healthLogs.map((l) => l.ndvi)
+    const soilTypeCounts = healthLogs.reduce<Record<string, number>>((acc, l) => {
+      if (l.soilType) acc[l.soilType] = (acc[l.soilType] || 0) + 1
+      return acc
+    }, {})
+    const dominantSoil = Object.entries(soilTypeCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
+    return {
+      moisture: cnt(soilMoistureVals) ? sum(soilMoistureVals) / cnt(soilMoistureVals) : undefined,
+      ph: cnt(phVals) ? sum(phVals) / cnt(phVals) : undefined,
+      temp: cnt(tempVals) ? sum(tempVals) / cnt(tempVals) : undefined,
+      ndvi: cnt(ndviVals) ? sum(ndviVals) / cnt(ndviVals) : undefined,
+      soilType: dominantSoil,
+      entries: n,
+    }
+  }, [healthLogs])
+
+  // Simple client-only "model" combining weather + logs into a yield estimate
+  function computePredictedYield(): { value: number; details: string[] } {
+    let yieldTpa = 3.8 // base tons/acre
+    const details: string[] = []
+
+    // Weather adjustments
+    if (weather?.temperature !== undefined) {
+      if (weather.temperature >= 20 && weather.temperature <= 30) {
+        yieldTpa += 0.2
+        details.push(`Favorable temperature (${weather.temperature}°C) +0.2`)
+      } else if (weather.temperature >= 35 || weather.temperature <= 10) {
+        yieldTpa -= 0.3
+        details.push(`Stress temperature (${weather.temperature}°C) -0.3`)
+      }
+    }
+    if (weather?.relative_humidity !== undefined) {
+      if (weather.relative_humidity >= 40 && weather.relative_humidity <= 70) {
+        yieldTpa += 0.1
+        details.push(`Optimal RH (${weather.relative_humidity}%) +0.1`)
+      } else {
+        yieldTpa -= 0.1
+        details.push(`Suboptimal RH (${weather.relative_humidity}%) -0.1`)
+      }
+    }
+    if (weather?.precipitation !== undefined) {
+      if (weather.precipitation > 2) {
+        yieldTpa -= 0.2
+        details.push(`High precipitation (${weather.precipitation}mm) -0.2`)
+      }
+    }
+
+    // Farm logs adjustments
+    if (avg) {
+      if (avg.moisture !== undefined) {
+        if (avg.moisture >= 60 && avg.moisture <= 80) {
+          yieldTpa += 0.2
+          details.push(`Good soil moisture (${avg.moisture.toFixed(1)}%) +0.2`)
+        } else {
+          yieldTpa -= 0.1
+          details.push(`Moisture off-range (${avg.moisture.toFixed(1)}%) -0.1`)
+        }
+      }
+      if (avg.ph !== undefined) {
+        if (avg.ph >= 6.0 && avg.ph <= 7.5) {
+          yieldTpa += 0.2
+          details.push(`Neutral pH (${avg.ph.toFixed(1)}) +0.2`)
+        } else {
+          yieldTpa -= 0.2
+          details.push(`pH suboptimal (${avg.ph.toFixed(1)}) -0.2`)
+        }
+      }
+      if (avg.ndvi !== undefined) {
+        if (avg.ndvi >= 0.7) {
+          yieldTpa += 0.3
+          details.push(`High NDVI (${avg.ndvi.toFixed(2)}) +0.3`)
+        } else if (avg.ndvi >= 0.5) {
+          yieldTpa += 0.1
+          details.push(`Moderate NDVI (${avg.ndvi.toFixed(2)}) +0.1`)
+        } else {
+          yieldTpa -= 0.2
+          details.push(`Low NDVI (${avg.ndvi.toFixed(2)}) -0.2`)
+        }
+      }
+      if (avg.soilType) {
+        const st = avg.soilType
+        const soilFactor: Record<string, number> = {
+          Loam: 0.2,
+          Black: 0.2,
+          Silt: 0.1,
+          Sandy: -0.05,
+          Clay: -0.1,
+        }
+        const add = soilFactor[st] ?? 0
+        yieldTpa += add
+        if (add !== 0) details.push(`Soil type ${st} ${add > 0 ? "+" : ""}${add}`)
+      }
+    }
+
+    // Clamp to a reasonable range
+    yieldTpa = Math.min(5.5, Math.max(2.0, yieldTpa))
+    return { value: Math.round(yieldTpa * 10) / 10, details }
+  }
+
   const t = translations[language];
 
   const handleLogin = () => {
@@ -707,6 +937,9 @@ export default function FarmingPlatformLanding() {
     mr: { "Farm Health Monitoring": "फार्म आरोग्य निरीक्षण", "Real-time monitoring of your farm's health with AI-powered insights for soil and crops.": "माती आणि पिकांसाठी एआय-चालित अंतर्दृष्टीसह आपल्या शेताच्या आरोग्याचे रिअल-टाइम निरीक्षण.", "Get Irrigation Setup": "सिंचन सेटअप", "Connect with local irrigation service providers for setup and maintenance.": "सेटअप आणि देखभालीसाठी स्थानिक सिंचन सेवा प्रदात्यांशी कनेक्ट व्हा.", "Weather Forecasting": "हवामान तपशील", "Hyperlocal weather predictions to help you make informed farming decisions.": "तुम्हाला माहितीपूर्ण शेती निर्णय घेण्यास मदत करण्यासाठी हायपरलोकल हवामान अंदाज.", "Yield Prediction": "उत्पन्न अंदाज", "Accurate yield forecasting using machine learning and historical data analysis.": "मशीन लर्निंग आणि ऐतिहासिक डेटा विश्लेषणाचा वापर करून अचूक उत्पन्न अंदाज.", "Equipment Rental": "उपकरणे भाड्याने देणे", "Rent farming equipment from nearby farmers and track equipment location in real-time.": "जवळच्या शेतकऱ्यांकडून शेतीची उपकरणे भाड्याने घ्या आणि उपकरणांचे स्थान रिअल-टाइममध्ये ट्रॅक करा.", "Disease Detection": "रोग ओळख", "AI-powered crop disease identification through photo analysis with treatment recommendations.": "उपचार शिफारसींसह फोटो विश्लेषणाद्वारे एआय-चालित पीक रोग ओळख.", "Learning Hub": "शिक्षण केंद्र", "Access farming tutorials, expert advice, and agricultural best practices.": "शेती ट्यूटोरियल, तज्ञांचा सल्ला आणि कृषी सर्वोत्तम पद्धतींमध्ये प्रवेश करा.", "Insurance": "विमा", "Crop insurance management and claims processing with AI damage assessment.": "एआय नुकसान मूल्यांकनासह पीक विमा व्यवस्थापन आणि दावे प्रक्रिया.", "Marketplace": "बाजारपेठ", "Buy and sell crops directly with other farmers and buyers at fair market prices.": "इतर शेतकरी आणि खरेदीदारांसोबत थेट योग्य बाजारभावात पिके खरेदी आणि विक्री करा.", "Community": "समुदाय", "Connect with fellow farmers, share experiences, and get expert advice.": "सहकारी शेतकऱ्यांशी कनेक्ट व्हा, अनुभव शेअर करा आणि तज्ञांचा सल्ला घ्या." },
   };
 
+  type FeatureKey = keyof typeof featureTranslations["en"]
+  const ft = (key: string) => featureTranslations[language][key as FeatureKey]
+
   const handleGetStarted = () => {
     setIsLoginOpen(true)
   }
@@ -743,11 +976,11 @@ export default function FarmingPlatformLanding() {
               <div className="relative z-10">
                 <CardHeader>
                   <div className="mb-4 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
-                  <CardTitle className="text-xl font-serif text-forest-green">{featureTranslations[language][feature.titleKey]}</CardTitle>
+                  <CardTitle className="text-xl font-serif text-forest-green">{ft(feature.titleKey)}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-600 leading-relaxed">{featureTranslations[language][feature.descriptionKey]}</CardDescription>
-                  <Button className="mt-4 w-full bg-forest-green hover:bg-forest-green/90">{t.openFeature} {featureTranslations[language][feature.titleKey]}</Button>
+                  <CardDescription className="text-gray-600 leading-relaxed">{ft(feature.descriptionKey)}</CardDescription>
+                  <Button className="mt-4 w-full bg-forest-green hover:bg-forest-green/90">{t.openFeature} {ft(feature.titleKey)}</Button>
                 </CardContent>
               </div>
             </Card>
@@ -1499,31 +1732,111 @@ export default function FarmingPlatformLanding() {
           <p className="text-xl text-gray-600">{t.cropMonitoringDescription}</p>
         </div>
 
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl text-forest-green">{t.liveMonitoringData}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg text-center">
-                <div className="text-2xl font-bold">78%</div>
-                <div className="text-sm opacity-90">{t.soilMoisture}</div>
+        <div className="grid lg:grid-cols-2 gap-6 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl text-forest-green">Add Measurement</CardTitle>
+              <CardDescription>Log your field measurements to refine yield prediction</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="log-date">Date & Time</Label>
+                  <Input id="log-date" type="datetime-local" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="soil-type">Soil Type</Label>
+                  <Select value={entrySoilType} onValueChange={setEntrySoilType}>
+                    <SelectTrigger id="soil-type"><SelectValue placeholder="Select type" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Loam">Loam</SelectItem>
+                      <SelectItem value="Black">Black</SelectItem>
+                      <SelectItem value="Sandy">Sandy</SelectItem>
+                      <SelectItem value="Clay">Clay</SelectItem>
+                      <SelectItem value="Silt">Silt</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-lg text-center">
-                <div className="text-2xl font-bold">6.8</div>
-                <div className="text-sm opacity-90">{t.soilPH}</div>
+              <div className="grid md:grid-cols-4 gap-4">
+                <div>
+                  <Label htmlFor="moisture">{t.soilMoisture} (%)</Label>
+                  <Input id="moisture" type="number" step="0.1" value={entryMoisture} onChange={(e) => setEntryMoisture(e.target.value)} placeholder="e.g., 72" />
+                </div>
+                <div>
+                  <Label htmlFor="ph">{t.soilPH}</Label>
+                  <Input id="ph" type="number" step="0.1" value={entryPH} onChange={(e) => setEntryPH(e.target.value)} placeholder="e.g., 6.8" />
+                </div>
+                <div>
+                  <Label htmlFor="temp">{t.temperature} (°C)</Label>
+                  <Input id="temp" type="number" step="0.1" value={entryTemp} onChange={(e) => setEntryTemp(e.target.value)} placeholder="e.g., 28" />
+                </div>
+                <div>
+                  <Label htmlFor="ndvi">{t.ndviIndex}</Label>
+                  <Input id="ndvi" type="number" step="0.01" value={entryNDVI} onChange={(e) => setEntryNDVI(e.target.value)} placeholder="e.g., 0.78" />
+                </div>
               </div>
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-lg text-center">
-                <div className="text-2xl font-bold">28°C</div>
-                <div className="text-sm opacity-90">{t.temperature}</div>
+              <div>
+                <Label htmlFor="notes">Notes</Label>
+                <Input id="notes" value={entryNotes} onChange={(e) => setEntryNotes(e.target.value)} placeholder="Optional notes" />
               </div>
-              <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-lg text-center">
-                <div className="text-2xl font-bold">0.82</div>
-                <div className="text-sm opacity-90">{t.ndviIndex}</div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button className="bg-forest-green hover:bg-forest-green/90" onClick={addHealthEntry}>Save Entry</Button>
+                <Button variant="outline" onClick={addSampleData}>Use Sample Data</Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl text-forest-green">{t.liveMonitoringData}</CardTitle>
+              <CardDescription>Recent field measurements</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Time</TableHead>
+                      <TableHead>{t.soilMoisture} (%)</TableHead>
+                      <TableHead>{t.soilPH}</TableHead>
+                      <TableHead>{t.temperature} (°C)</TableHead>
+                      <TableHead>{t.ndviIndex}</TableHead>
+                      <TableHead>Soil Type</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {healthLogs.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-gray-500">No measurements yet</TableCell>
+                      </TableRow>
+                    ) : (
+                      healthLogs.map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell>{new Date(log.timestamp).toLocaleString()}</TableCell>
+                          <TableCell>{log.soilMoisture ?? "-"}</TableCell>
+                          <TableCell>{log.soilPH ?? "-"}</TableCell>
+                          <TableCell>{log.temperature ?? "-"}</TableCell>
+                          <TableCell>{log.ndvi ?? "-"}</TableCell>
+                          <TableCell>{log.soilType ?? "-"}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              {avg && (
+                <div className="mt-4 grid sm:grid-cols-5 gap-2 text-sm text-gray-700">
+                  <div><span className="font-semibold">Avg:</span></div>
+                  <div>{t.soilMoisture}: {avg.moisture?.toFixed(1) ?? "-"}%</div>
+                  <div>{t.soilPH}: {avg.ph?.toFixed(1) ?? "-"}</div>
+                  <div>{t.ndviIndex}: {avg.ndvi?.toFixed(2) ?? "-"}</div>
+                  <div>Soil: {avg.soilType ?? "-"}</div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="text-center">
           <Button
@@ -1661,13 +1974,37 @@ export default function FarmingPlatformLanding() {
               <CardTitle className="text-2xl text-forest-green">{t.currentSeasonPrediction}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center mb-6">
-                <div className="text-4xl font-bold text-green-600 mb-2">4.2 tons/acre</div>
-                <p className="text-gray-600">{t.predictedYield}</p>
-                <div className="text-sm text-green-700 bg-green-50 p-2 rounded mt-2">
-                  {t.yieldAboveLast}
-                </div>
-              </div>
+              {(() => {
+                const result = computePredictedYield()
+                const baseline = 3.8
+                const deltaPct = Math.round(((result.value - baseline) / baseline) * 100)
+                return (
+                  <div>
+                    <div className="text-center mb-6">
+                      <div className="text-4xl font-bold text-green-600 mb-2">{result.value} tons/acre</div>
+                      <p className="text-gray-600">{t.predictedYield}</p>
+                      <div className={`text-sm ${deltaPct >= 0 ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"} p-2 rounded mt-2`}>
+                        {deltaPct >= 0 ? `Approximately ${deltaPct}% above baseline` : `Approximately ${Math.abs(deltaPct)}% below baseline`}
+                      </div>
+                    </div>
+                    <div className="space-y-1 text-sm text-gray-700">
+                      <div className="font-semibold">Factors considered:</div>
+                      <ul className="list-disc pl-5 space-y-1">
+                        {avg?.moisture !== undefined && <li>{t.soilMoisture}: {avg.moisture.toFixed(1)}%</li>}
+                        {avg?.ph !== undefined && <li>{t.soilPH}: {avg.ph.toFixed(1)}</li>}
+                        {avg?.ndvi !== undefined && <li>{t.ndviIndex}: {avg.ndvi.toFixed(2)}</li>}
+                        {avg?.soilType && <li>Soil Type: {avg.soilType}</li>}
+                        {weather && (
+                          <li>
+                            Weather: {weather.temperature ?? "-"}°C, RH {weather.relative_humidity ?? "-"}%,
+                            Prec {weather.precipitation ?? "-"}mm
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                )
+              })()}
             </CardContent>
           </Card>
 
@@ -1686,6 +2023,64 @@ export default function FarmingPlatformLanding() {
                   <p className="text-blue-700 text-sm">{t.maximizeRevenueDesc}</p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8 mb-12">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl text-forest-green">Weather Conditions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {weatherLoading ? (
+                <div className="text-gray-600">Fetching weather...</div>
+              ) : weatherError ? (
+                <div className="text-red-600">{weatherError}</div>
+              ) : weather ? (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="bg-white border rounded p-3">
+                    <div className="text-sm text-gray-500">Temperature</div>
+                    <div className="text-xl font-semibold">{weather.temperature}°C</div>
+                  </div>
+                  <div className="bg-white border rounded p-3">
+                    <div className="text-sm text-gray-500">Humidity</div>
+                    <div className="text-xl font-semibold">{weather.relative_humidity}%</div>
+                  </div>
+                  <div className="bg-white border rounded p-3">
+                    <div className="text-sm text-gray-500">Precipitation</div>
+                    <div className="text-xl font-semibold">{weather.precipitation} mm</div>
+                  </div>
+                  <div className="bg-white border rounded p-3">
+                    <div className="text-sm text-gray-500">Wind</div>
+                    <div className="text-xl font-semibold">{weather.wind_speed} m/s</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-600">Weather unavailable.</div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl text-forest-green">Location (OpenStreetMap)</CardTitle>
+              <CardDescription>
+                Coordinates: {LOCATION.dms} ({LOCATION.lat.toFixed(6)}, {LOCATION.lon.toFixed(6)})
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                const pad = 0.0015
+                const bbox = `${LOCATION.lon - pad},${LOCATION.lat - pad},${LOCATION.lon + pad},${LOCATION.lat + pad}`
+                const marker = `${LOCATION.lat},${LOCATION.lon}`
+                const src = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(marker)}`
+                return (
+                  <div className="w-full aspect-[16/9] overflow-hidden rounded border">
+                    <iframe title="OpenStreetMap" className="w-full h-full" src={src} />
+                  </div>
+                )
+              })()}
             </CardContent>
           </Card>
         </div>
@@ -2015,10 +2410,10 @@ export default function FarmingPlatformLanding() {
               <Card key={index} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <CardHeader>
                   <div className="mb-4 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
-                  <CardTitle className="text-xl font-serif text-forest-green">{featureTranslations[language][feature.titleKey]}</CardTitle>
+                  <CardTitle className="text-xl font-serif text-forest-green">{ft(feature.titleKey)}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-600 leading-relaxed">{featureTranslations[language][feature.descriptionKey]}</CardDescription>
+                  <CardDescription className="text-gray-600 leading-relaxed">{ft(feature.descriptionKey)}</CardDescription>
                 </CardContent>
               </Card>
             ))}
