@@ -218,7 +218,7 @@ const translations = {
     // Weather Forecast Page
     weatherForecastTitle: "Weather Forecasting",
     weatherForecastDescription: "Stay ahead with accurate weather predictions for better farming decisions",
-    sevenDayForecast: "7-Day Weather Forecast",
+    sevenDayForecast: "7-Day Weather Forecast based on your location:",
     // Disease Detection Page
     diseaseDetectionTitle: "Disease Detection",
     diseaseDetectionDescription: "AI-powered crop disease identification and prevention",
@@ -614,6 +614,54 @@ export default function FarmingPlatformLanding() {
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
   const [language, setLanguage] = useState<"en" | "hi" | "mr">("en")
+  // Per-post translation selection for Community posts
+  const [postLang, setPostLang] = useState<Record<number, "en" | "hi" | "mr">>({})
+
+  // Helper to cycle per-post language: en -> hi -> mr -> en
+  const cycleLang = (l: "en" | "hi" | "mr"): "en" | "hi" | "mr" => (l === "en" ? "hi" : l === "hi" ? "mr" : "en")
+
+  // Hardcoded translations for current community posts (author + content)
+  const postTranslations: Record<string, {
+    hi: { author: string; content: string }
+    mr: { author: string; content: string }
+  }> = {
+    "Rajesh Kumar": {
+      hi: {
+        author: "राजेश कुमार",
+        content:
+          "अभी-अभी मैंने अपनी गेहूँ की फसल की कटाई की! उपज पिछले साल की तुलना में 20% अधिक रही, यहाँ सीखी नई सिंचाई तकनीकों की बदौलत। धन्यवाद समुदाय!",
+      },
+      mr: {
+        author: "राजेश कुमार",
+        content:
+          "आत्ताच मी माझ्या गव्हाची कापणी केली! इथे शिकलेल्या नवीन सिंचन तंत्रांमुळे या वर्षीची उत्पादकता गेल्या वर्षाच्या तुलनेत 20% जास्त झाली. समुदायाचे आभार!",
+      },
+    },
+    "Priya Sharma": {
+      hi: {
+        author: "प्रिया शर्मा",
+        content:
+          "क्या किसी ने टमाटरों के लिए जैविक कीट नियंत्रण के तरीके आजमाए हैं? रासायनिक कीटनाशकों के प्राकृतिक विकल्पों की तलाश है।",
+      },
+      mr: {
+        author: "प्रिया शर्मा",
+        content:
+          "टोमॅटोसाठी सेंद्रिय कीड नियंत्रणाच्या पद्धती कोणी वापरल्या आहेत का? रासायनिक कीटकनाशकांना नैसर्गिक पर्याय शोधत आहे.",
+      },
+    },
+    "Dr. Amit Verma (Expert)": {
+      hi: {
+        author: "डा. अमित वर्मा (विशेषज्ञ)",
+        content:
+          "मौसम अपडेट: अगले सप्ताह उत्तर भारत में भारी बारिश की संभावना। किसानों को जल निकासी प्रणाली तैयार रखनी चाहिए और फसलों को जलभराव से बचाना चाहिए।",
+      },
+      mr: {
+        author: "डा. अमित वर्मा (तज्ज्ञ)",
+        content:
+          "हवामान अपडेट: पुढील आठवड्यात उत्तर भारतात मुसळधार पावसाची शक्यता. शेतकऱ्यांनी पाणी निचरा व्यवस्था तयार ठेवावी आणि पिकांना पाणथळीतून संरक्षण द्यावे.",
+      },
+    },
+  }
 
   // --- Farm Health Monitoring state ---
   type HealthLog = {
@@ -1375,7 +1423,7 @@ export default function FarmingPlatformLanding() {
                       "Just harvested my wheat crop! Yield was 20% higher than last year thanks to the new irrigation techniques I learned here. Thank you community!",
                     likes: 24,
                     comments: 8,
-                    image: "/placeholder.svg?height=300&width=500",
+                    image: "/community/post-1.png",
                   },
                   {
                     author: "Priya Sharma",
@@ -1393,43 +1441,74 @@ export default function FarmingPlatformLanding() {
                       "Weather update: Heavy rains expected next week in North India. Farmers should prepare drainage systems and protect crops from waterlogging.",
                     likes: 45,
                     comments: 18,
-                    image: "/placeholder.svg?height=300&width=500",
+                    image: "/community/post-3.jpeg",
                   },
-                ].map((post, index) => (
-                  <div key={index} className="border-b pb-6 last:border-b-0">
-                    <div className="flex items-center mb-3">
-                      <div className="w-10 h-10 bg-forest-green rounded-full flex items-center justify-center text-white font-semibold">
-                        {post.author.charAt(0)}
+                ].map((post, index) => {
+                  const selected = postLang[index] || "en"
+                  const translationsForAuthor = postTranslations[post.author]
+                  const authorText =
+                    selected === "en"
+                      ? post.author
+                      : translationsForAuthor?.[selected]?.author || post.author
+                  const contentText =
+                    selected === "en"
+                      ? post.content
+                      : translationsForAuthor?.[selected]?.content || post.content
+
+                  return (
+                    <div key={index} className="border-b pb-6 last:border-b-0">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-forest-green rounded-full flex items-center justify-center text-white font-semibold">
+                            {authorText.charAt(0)}
+                          </div>
+                          <div className="ml-3">
+                            <p className="font-semibold">{authorText}</p>
+                            <p className="text-sm text-gray-500">{post.time}</p>
+                          </div>
+                        </div>
+                        {/* Per-post single translate toggle */}
+                        <div>
+                          <button
+                            onClick={() => setPostLang((s) => ({ ...s, [index]: cycleLang(selected) }))}
+                            className="text-xs px-2 py-1 rounded border bg-forest-green hover:bg-forest-green/90 text-white"
+                            aria-label="Toggle translation language"
+                            title="Toggle translation (EN → HI → MR)"
+                          >
+                            {selected.toUpperCase()}
+                          </button>
+                        </div>
                       </div>
-                      <div className="ml-3">
-                        <p className="font-semibold">{post.author}</p>
-                        <p className="text-sm text-gray-500">{post.time}</p>
+                      <p className="mb-4 leading-relaxed">{contentText}</p>
+                      {post.image && (
+                        <img
+                          src={post.image || "/placeholder.svg"}
+                          alt="Post image"
+                          className="w-full h-64 object-cover rounded-lg mb-4"
+                          onError={(e) => {
+                            const target = e.currentTarget as HTMLImageElement
+                            target.onerror = null
+                            target.src = "/placeholder.svg"
+                          }}
+                        />
+                      )}
+                      <div className="flex items-center space-x-6 text-gray-500">
+                        <button className="flex items-center space-x-2 hover:text-forest-green">
+                          <ThumbsUp className="h-4 w-4" />
+                          <span>{post.likes}</span>
+                        </button>
+                        <button className="flex items-center space-x-2 hover:text-forest-green">
+                          <MessageCircle className="h-4 w-4" />
+                          <span>{post.comments}</span>
+                        </button>
+                        <button className="flex items-center space-x-2 hover:text-forest-green">
+                          <Share2 className="h-4 w-4" />
+                          <span>{t.share}</span>
+                        </button>
                       </div>
                     </div>
-                    <p className="mb-4 leading-relaxed">{post.content}</p>
-                    {post.image && (
-                      <img
-                        src={post.image || "/placeholder.svg"}
-                        alt="Post image"
-                        className="w-full h-64 object-cover rounded-lg mb-4"
-                      />
-                    )}
-                    <div className="flex items-center space-x-6 text-gray-500">
-                      <button className="flex items-center space-x-2 hover:text-forest-green">
-                        <ThumbsUp className="h-4 w-4" />
-                        <span>{post.likes}</span>
-                      </button>
-                      <button className="flex items-center space-x-2 hover:text-forest-green">
-                        <MessageCircle className="h-4 w-4" />
-                        <span>{post.comments}</span>
-                      </button>
-                      <button className="flex items-center space-x-2 hover:text-forest-green">
-                        <Share2 className="h-4 w-4" />
-                        <span>{t.share}</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </CardContent>
             </Card>
           </div>
