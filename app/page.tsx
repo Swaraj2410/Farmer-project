@@ -747,10 +747,36 @@ export default function FarmingPlatformLanding() {
     time?: string
   }
 
+  type ForecastDay = {
+    date: string
+    day: string
+    temp_max: number
+    temp_min: number
+    precipitation: number
+    weather_code: number
+    wind_speed: number
+  }
+
   const LOCATION = { lat: 18.589028, lon: 73.927389, dms: "18°35'20.5\"N 73°55'38.6\"E" } // precise DMS
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [weatherLoading, setWeatherLoading] = useState<boolean>(false)
   const [weatherError, setWeatherError] = useState<string | null>(null)
+  const [forecast, setForecast] = useState<ForecastDay[]>([])
+  const [forecastLoading, setForecastLoading] = useState<boolean>(false)
+  const [forecastError, setForecastError] = useState<string | null>(null)
+  const [currentTime, setCurrentTime] = useState<string>("")
+
+  // Helper function to map weather codes to icons and descriptions
+  const getWeatherIcon = (weatherCode: number) => {
+    if (weatherCode === 0) return { icon: Sun, desc: 'Clear Sky' }
+    if (weatherCode <= 3) return { icon: CloudSun, desc: 'Partly Cloudy' }
+    if (weatherCode <= 48) return { icon: Cloud, desc: 'Cloudy' }
+    if (weatherCode <= 67) return { icon: CloudRain, desc: 'Rainy' }
+    if (weatherCode <= 77) return { icon: CloudRain, desc: 'Snow' }
+    if (weatherCode <= 82) return { icon: CloudRain, desc: 'Showers' }
+    if (weatherCode <= 99) return { icon: CloudRain, desc: 'Thunderstorm' }
+    return { icon: Sun, desc: 'Clear' }
+  }
 
   async function fetchWeather() {
     try {
@@ -775,6 +801,37 @@ export default function FarmingPlatformLanding() {
     }
   }
 
+  async function fetchWeatherForecast() {
+    try {
+      setForecastError(null)
+      setForecastLoading(true)
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${LOCATION.lat}&longitude=${LOCATION.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code,wind_speed_10m_max&timezone=auto&forecast_days=7`
+      const res = await fetch(url)
+      const data = await res.json()
+      
+      if (data?.daily) {
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+        const forecastData: ForecastDay[] = data.daily.time.map((date: string, index: number) => {
+          const dateObj = new Date(date)
+          return {
+            date,
+            day: days[dateObj.getDay()],
+            temp_max: Math.round(data.daily.temperature_2m_max[index]),
+            temp_min: Math.round(data.daily.temperature_2m_min[index]),
+            precipitation: Math.round(data.daily.precipitation_sum[index] * 10) / 10,
+            weather_code: data.daily.weather_code[index],
+            wind_speed: Math.round(data.daily.wind_speed_10m_max[index])
+          }
+        })
+        setForecast(forecastData)
+      }
+    } catch (e: any) {
+      setForecastError("Unable to fetch weather forecast.")
+    } finally {
+      setForecastLoading(false)
+    }
+  }
+
   // Fetch weather when entering the yield page
   React.useEffect(() => {
     if (isLoggedIn && currentPage === "yield-prediction") {
@@ -782,6 +839,39 @@ export default function FarmingPlatformLanding() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, currentPage])
+
+  // Fetch weather forecast when entering the weather page
+  React.useEffect(() => {
+    if (isLoggedIn && currentPage === "weather") {
+      fetchWeatherForecast()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, currentPage])
+
+  // Update current time every second and fetch weather data when logged in
+  React.useEffect(() => {
+    const updateTime = () => {
+      const now = new Date()
+      setCurrentTime(now.toLocaleTimeString('en-US', { 
+        hour12: true, 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+      }))
+    }
+
+    updateTime()
+    const timeInterval = setInterval(updateTime, 1000)
+
+    // Fetch current weather and forecast when logged in
+    if (isLoggedIn) {
+      fetchWeather()
+      fetchWeatherForecast()
+    }
+
+    return () => clearInterval(timeInterval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn])
 
   // Compute averages from logs
   const avg = React.useMemo(() => {
@@ -1938,32 +2028,271 @@ export default function FarmingPlatformLanding() {
           <p className="text-xl text-gray-600">{t.weatherForecastDescription}</p>
         </div>
 
+        {/* Current Weather Summary */}
+        {weather && (
+          <Card className="mb-8 bg-gradient-to-r from-blue-50 to-sky-50">
+            <CardHeader>
+              <CardTitle className="text-2xl text-forest-green flex items-center">
+                <Sun className="h-6 w-6 mr-2" />
+                Current Weather Conditions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-4 gap-6">
+                <div className="text-center p-4 bg-white rounded-lg">
+                  <div className="text-3xl font-bold text-blue-600">{weather.temperature}°C</div>
+                  <div className="text-gray-600">Temperature</div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    {weather.temperature > 35 ? "Very Hot" : 
+                     weather.temperature > 30 ? "Hot" :
+                     weather.temperature > 25 ? "Warm" :
+                     weather.temperature > 15 ? "Mild" : "Cool"}
+                  </div>
+                </div>
+                <div className="text-center p-4 bg-white rounded-lg">
+                  <div className="text-3xl font-bold text-green-600">{weather.relative_humidity}%</div>
+                  <div className="text-gray-600">Humidity</div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    {weather.relative_humidity > 80 ? "Very Humid" : 
+                     weather.relative_humidity > 60 ? "Humid" :
+                     weather.relative_humidity > 40 ? "Moderate" : "Dry"}
+                  </div>
+                </div>
+                <div className="text-center p-4 bg-white rounded-lg">
+                  <div className="text-3xl font-bold text-purple-600">{weather.precipitation || 0}mm</div>
+                  <div className="text-gray-600">Precipitation</div>
+                  <div className="text-sm text-gray-500 mt-1">Last Hour</div>
+                </div>
+                <div className="text-center p-4 bg-white rounded-lg">
+                  <div className="text-3xl font-bold text-orange-600">{weather.wind_speed}m/s</div>
+                  <div className="text-gray-600">Wind Speed</div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    {weather.wind_speed > 10 ? "Strong" : 
+                     weather.wind_speed > 5 ? "Moderate" : "Light"}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* 7-Day Forecast */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="text-2xl text-forest-green flex items-center">
-              <Sun className="h-6 w-6 mr-2" />
+              <CloudRain className="h-6 w-6 mr-2" />
               {t.sevenDayForecast}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-7 gap-2">
-              {[
-                { day: 'Mon', temp: '32°', icon: Sun, desc: 'Sunny', rain: '0%' },
-                { day: 'Tue', temp: '29°', icon: Cloud, desc: 'Cloudy', rain: '20%' },
-                { day: 'Wed', temp: '26°', icon: CloudRain, desc: 'Rainy', rain: '80%' },
-                { day: 'Thu', temp: '24°', icon: CloudRain, desc: 'Heavy Rain', rain: '95%' },
-                { day: 'Fri', temp: '27°', icon: CloudSun, desc: 'Partly Cloudy', rain: '30%' },
-                { day: 'Sat', temp: '31°', icon: Sun, desc: 'Sunny', rain: '5%' },
-                { day: 'Sun', temp: '33°', icon: Sun, desc: 'Hot', rain: '0%' }
-              ].map((weather, i) => (
-                <div key={i} className="text-center p-3 bg-white rounded-lg shadow-sm">
-                  <div className="text-sm font-medium text-gray-600">{weather.day}</div>
-                  <weather.icon className="h-8 w-8 mx-auto my-2 text-blue-500" />
-                  <div className="font-bold text-lg">{weather.temp}</div>
-                  <div className="text-xs text-gray-500">{weather.desc}</div>
-                  <div className="text-xs text-blue-600">{weather.rain}</div>
-                </div>
-              ))}
+            {forecastLoading ? (
+              <div className="text-center py-8 text-gray-600">Loading weather forecast...</div>
+            ) : forecastError ? (
+              <div className="text-center py-8 text-red-600">{forecastError}</div>
+            ) : forecast.length > 0 ? (
+              <div className="space-y-4">
+                {forecast.map((day, i) => {
+                  const weatherInfo = getWeatherIcon(day.weather_code)
+                  const today = i === 0
+                  return (
+                    <div key={i} className={`p-4 rounded-lg border ${today ? 'bg-green-50 border-green-200' : 'bg-white'}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="text-lg font-semibold w-16">
+                            {today ? 'Today' : day.day}
+                          </div>
+                          <weatherInfo.icon className="h-8 w-8 text-blue-500" />
+                          <div className="text-gray-600">{weatherInfo.desc}</div>
+                        </div>
+                        <div className="flex items-center space-x-8">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold">{day.temp_max}°</div>
+                            <div className="text-sm text-gray-500">{day.temp_min}°</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-blue-600 font-semibold">{day.precipitation}mm</div>
+                            <div className="text-xs text-gray-500">Rain</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-gray-600">{day.wind_speed}m/s</div>
+                            <div className="text-xs text-gray-500">Wind</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-600">No forecast data available</div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Farming Insights */}
+        <div className="grid md:grid-cols-2 gap-8 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl text-forest-green flex items-center">
+                <Sprout className="h-5 w-5 mr-2" />
+                Farming Recommendations
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {forecast.length > 0 && (() => {
+                  const nextThreeDays = forecast.slice(0, 3)
+                  const totalRain = nextThreeDays.reduce((sum, day) => sum + day.precipitation, 0)
+                  const avgTemp = nextThreeDays.reduce((sum, day) => sum + day.temp_max, 0) / 3
+                  const maxWind = Math.max(...nextThreeDays.map(day => day.wind_speed))
+                  
+                  const recommendations = []
+                  
+                  if (totalRain > 20) {
+                    recommendations.push({
+                      icon: "🌧️",
+                      text: "Heavy rainfall expected. Prepare drainage systems and avoid irrigation for the next 3 days."
+                    })
+                  } else if (totalRain < 2) {
+                    recommendations.push({
+                      icon: "💧",
+                      text: "Dry conditions ahead. Plan for adequate irrigation, especially for young plants."
+                    })
+                  }
+                  
+                  if (avgTemp > 35) {
+                    recommendations.push({
+                      icon: "🌡️",
+                      text: "High temperatures expected. Provide shade for sensitive crops and increase watering frequency."
+                    })
+                  } else if (avgTemp < 15) {
+                    recommendations.push({
+                      icon: "❄️",
+                      text: "Cool weather ahead. Consider frost protection for sensitive plants."
+                    })
+                  }
+                  
+                  if (maxWind > 15) {
+                    recommendations.push({
+                      icon: "💨",
+                      text: "Strong winds expected. Secure greenhouse structures and support tall plants."
+                    })
+                  }
+                  
+                  if (recommendations.length === 0) {
+                    recommendations.push({
+                      icon: "✅",
+                      text: "Weather conditions are favorable for most farming activities."
+                    })
+                  }
+                  
+                  return recommendations.map((rec, idx) => (
+                    <div key={idx} className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
+                      <span className="text-2xl">{rec.icon}</span>
+                      <p className="text-sm text-gray-700">{rec.text}</p>
+                    </div>
+                  ))
+                })()}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl text-forest-green flex items-center">
+                <BarChart3 className="h-5 w-5 mr-2" />
+                Weekly Weather Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {forecast.length > 0 && (() => {
+                const totalRain = forecast.reduce((sum, day) => sum + day.precipitation, 0)
+                const avgTemp = Math.round(forecast.reduce((sum, day) => sum + (day.temp_max + day.temp_min) / 2, 0) / forecast.length)
+                const maxTemp = Math.max(...forecast.map(day => day.temp_max))
+                const minTemp = Math.min(...forecast.map(day => day.temp_min))
+                const rainyDays = forecast.filter(day => day.precipitation > 1).length
+                const sunnyDays = forecast.filter(day => day.weather_code === 0).length
+                
+                return (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-blue-50 p-3 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600">{totalRain.toFixed(1)}mm</div>
+                        <div className="text-sm text-gray-600">Total Rainfall</div>
+                      </div>
+                      <div className="bg-orange-50 p-3 rounded-lg">
+                        <div className="text-2xl font-bold text-orange-600">{avgTemp}°C</div>
+                        <div className="text-sm text-gray-600">Avg Temperature</div>
+                      </div>
+                      <div className="bg-red-50 p-3 rounded-lg">
+                        <div className="text-2xl font-bold text-red-600">{maxTemp}°C</div>
+                        <div className="text-sm text-gray-600">Max Temperature</div>
+                      </div>
+                      <div className="bg-purple-50 p-3 rounded-lg">
+                        <div className="text-2xl font-bold text-purple-600">{minTemp}°C</div>
+                        <div className="text-sm text-gray-600">Min Temperature</div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Rainy Days:</span>
+                        <span className="font-semibold">{rainyDays}/7</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Sunny Days:</span>
+                        <span className="font-semibold">{sunnyDays}/7</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Best for Farming:</span>
+                        <span className="font-semibold text-green-600">
+                          {7 - rainyDays - sunnyDays < rainyDays ? "Early Week" : "Mid Week"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Agricultural Calendar */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-xl text-forest-green flex items-center">
+              <Calendar className="h-5 w-5 mr-2" />
+              This Week's Agricultural Activities
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="border-l-4 border-green-500 pl-4">
+                <h4 className="font-semibold text-green-700">Recommended Activities</h4>
+                <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                  <li>• Monitor soil moisture levels daily</li>
+                  <li>• Check for pest and disease symptoms</li>
+                  <li>• Apply organic fertilizer if soil conditions are right</li>
+                  <li>• Prune excess vegetation for better air circulation</li>
+                </ul>
+              </div>
+              <div className="border-l-4 border-yellow-500 pl-4">
+                <h4 className="font-semibold text-yellow-700">Weather-Dependent Tasks</h4>
+                <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                  <li>• Plan irrigation based on rainfall predictions</li>
+                  <li>• Schedule harvesting for clear weather days</li>
+                  <li>• Prepare drainage systems if heavy rain expected</li>
+                  <li>• Adjust greenhouse ventilation based on temperature</li>
+                </ul>
+              </div>
+              <div className="border-l-4 border-blue-500 pl-4">
+                <h4 className="font-semibold text-blue-700">Seasonal Considerations</h4>
+                <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                  <li>• September is ideal for winter crop preparation</li>
+                  <li>• Consider companion planting for pest control</li>
+                  <li>• Plan for crop rotation in upcoming season</li>
+                  <li>• Harvest monsoon crops before peak winter</li>
+                </ul>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -2182,6 +2511,11 @@ export default function FarmingPlatformLanding() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
+            {/* Time on far left */}
+            <div className="hidden md:flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs font-medium text-gray-700 mr-4">
+              <Calendar className="h-3 w-3" />
+              <span>{currentTime}</span>
+            </div>
             <Leaf className="h-8 w-8 text-forest-green" />
             <span className="text-2xl font-serif font-bold text-forest-green">{t.appName}</span>
           </div>
@@ -2246,6 +2580,19 @@ export default function FarmingPlatformLanding() {
               <LogOut className="h-4 w-4 mr-2" />
               {t.logout}
             </Button>
+            {/* Weather on far right */}
+            {weather && !weatherLoading && (
+              <div className="hidden md:flex items-center space-x-1 bg-blue-50 px-2 py-1 rounded text-xs font-medium text-gray-700">
+                {(() => {
+                  const temp = weather.temperature || 0
+                  if (temp > 30) return <Sun className="h-3 w-3 text-orange-500" />
+                  if (temp > 20) return <CloudSun className="h-3 w-3 text-yellow-500" />
+                  return <Cloud className="h-3 w-3 text-gray-500" />
+                })()}
+                <span>{weather.temperature}°C</span>
+                <span className="text-gray-500">{weather.relative_humidity}%</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
