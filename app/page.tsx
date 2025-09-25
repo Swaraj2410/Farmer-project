@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { VoiceControl } from "@/components/VoiceControl";
 import {
   Dialog,
   DialogContent,
@@ -56,6 +57,54 @@ import {
   Sun,
   Cloud
 } from "lucide-react"
+
+// Add this section after your imports in page.tsx
+
+// Define voice commands for different languages
+const voiceCommands = {
+  en: [
+    { phrases: ["go to dashboard", "open dashboard", "show dashboard"], action: "dashboard" },
+    { phrases: ["equipment rental", "open equipment"], action: "equipment-rental" },
+    { phrases: ["marketplace"], action: "marketplace" },
+    { phrases: ["community"], action: "community" },
+    { phrases: ["learning hub", "open learning"], action: "learning-hub" },
+    { phrases: ["irrigation"], action: "irrigation" },
+    { phrases: ["farm health", "crop monitoring"], action: "crop-analysis" },
+    { phrases: ["weather forecast", "show weather"], action: "weather" },
+    { phrases: ["yield prediction", "predict yield"], action: "yield-prediction" },
+    { phrases: ["disease detection", "check disease"], action: "disease-detection" },
+    { phrases: ["insurance"], action: "insurance" },
+    { phrases: ["log out", "sign out"], action: "logout" },
+  ],
+  hi: [
+    { phrases: ["डैशबोर्ड पर जाएं", "डैशबोर्ड खोलो"], action: "dashboard" },
+    { phrases: ["उपकरण किराए पर लें", "उपकरण खोलो"], action: "equipment-rental" },
+    { phrases: ["बाजार"], action: "marketplace" },
+    { phrases: ["समुदाय"], action: "community" },
+    { phrases: ["लर्निंग हब"], action: "learning-hub" },
+    { phrases: ["सिंचाई"], action: "irrigation" },
+    { phrases: ["खेत का स्वास्थ्य"], action: "crop-analysis" },
+    { phrases: ["मौसम का पूर्वानुमान"], action: "weather" },
+    { phrases: ["उपज की भविष्यवाणी"], action: "yield-prediction" },
+    { phrases: ["रोग का पता लगाएं"], action: "disease-detection" },
+    { phrases: ["बीमा"], action: "insurance" },
+    { phrases: ["लॉग आउट करें", "साइन आउट करें"], action: "logout" },
+  ],
+  mr: [
+    { phrases: ["डॅशबोर्डवर जा", "डॅशबोर्ड उघडा"], action: "dashboard" },
+    { phrases: ["उपकरणे भाड्याने द्या", "उपकरणे उघडा"], action: "equipment-rental" },
+    { phrases: ["बाजारपेठ"], action: "marketplace" },
+    { phrases: ["समुदाय"], action: "community" },
+    { phrases: ["शिक्षण केंद्र"], action: "learning-hub" },
+    { phrases: ["सिंचन"], action: "irrigation" },
+    { phrases: ["शेताचे आरोग्य"], action: "crop-analysis" },
+    { phrases: ["हवामान अंदाज"], action: "weather" },
+    { phrases: ["उत्पन्न अंदाज"], action: "yield-prediction" },
+    { phrases: ["रोग ओळखा"], action: "disease-detection" },
+    { phrases: ["विमा"], action: "insurance" },
+    { phrases: ["लॉग आउट करा", "साइन आउट करा"], action: "logout" },
+  ],
+};
 
 // --- TRANSLATIONS OBJECT ---
 const translations = {
@@ -3196,6 +3245,18 @@ export default function FarmingPlatformLanding() {
     return (
       <div className="min-h-screen bg-white">
         {renderLoggedInHeader()}
+        <VoiceControl
+          commands={voiceCommands[lang]}
+          onCommand={(action) => {
+            if (action === "logout") {
+              handleLogout();
+            } else {
+              navigateToPage(action);
+            }
+          }}
+          language={lang}
+        />
+
         {currentPage === "dashboard" && renderDashboard()}
         {currentPage === "equipment-rental" && renderEquipmentRental()}
         {currentPage === "marketplace" && renderMarketplace()}
