@@ -608,6 +608,32 @@ const translations = {
 } as const;
 
 
+
+
+// --- Detect browser language on load ---
+function getBrowserLanguage() {
+  if (typeof navigator !== "undefined") {
+    return (
+      (navigator.languages && navigator.languages[0]) ||
+      navigator.language || "en"
+    ).split("-")[0];
+  }
+  return "en";
+}
+
+// --- Translation hook: returns t, lang, setLang, supportedLangs ---
+function useTranslation() {
+  const [lang, setLang] = useState(getBrowserLanguage());
+  const supportedLangs = Object.keys(translations);
+  const currentLang = supportedLangs.includes(lang) ? lang : "en";
+  return {
+    t: translations[currentLang],
+    lang,
+    setLang,
+    supportedLangs,
+  };
+}
+
 export default function FarmingPlatformLanding() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
@@ -616,14 +642,14 @@ export default function FarmingPlatformLanding() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
-  const [language, setLanguage] = useState<"en" | "hi" | "mr">("en")
-  // Per-post translation selection for Community posts
-  const [postLang, setPostLang] = useState<Record<number, "en" | "hi" | "mr">>({})
+ 
 
-  // Helper to cycle per-post language: en -> hi -> mr -> en
-  const cycleLang = (l: "en" | "hi" | "mr"): "en" | "hi" | "mr" => (l === "en" ? "hi" : l === "hi" ? "mr" : "en")
 
-  // Hardcoded translations for current community posts (author + content)
+  const [postLang, setPostLang] = useState<Record<number, "en" | "hi" | "mr">>({});
+  // Helper to cycle per-post language: en → hi → mr → en
+  const cycleLang = (l: "en" | "hi" | "mr"): "en" | "hi" | "mr" => (l === "en" ? "hi" : l === "hi" ? "mr" : "en");
+
+  // --- Hardcoded translations for current community posts (author + content) ---
   const postTranslations: Record<string, {
     hi: { author: string; content: string }
     mr: { author: string; content: string }
@@ -665,6 +691,8 @@ export default function FarmingPlatformLanding() {
       },
     },
   }
+
+  
 
   // --- Farm Health Monitoring state ---
   type HealthLog = {
@@ -984,7 +1012,6 @@ export default function FarmingPlatformLanding() {
     return { value: Math.round(yieldTpa * 10) / 10, details }
   }
 
-  const t = translations[language];
 
   const handleLogin = () => {
     setIsLoggedIn(true)
@@ -1078,418 +1105,423 @@ export default function FarmingPlatformLanding() {
     mr: { "Farm Health Monitoring": "फार्म आरोग्य निरीक्षण", "Real-time monitoring of your farm's health with AI-powered insights for soil and crops.": "माती आणि पिकांसाठी एआय-चालित अंतर्दृष्टीसह आपल्या शेताच्या आरोग्याचे रिअल-टाइम निरीक्षण.", "Get Irrigation Setup": "सिंचन सेटअप", "Connect with local irrigation service providers for setup and maintenance.": "सेटअप आणि देखभालीसाठी स्थानिक सिंचन सेवा प्रदात्यांशी कनेक्ट व्हा.", "Weather Forecasting": "हवामान तपशील", "Hyperlocal weather predictions to help you make informed farming decisions.": "तुम्हाला माहितीपूर्ण शेती निर्णय घेण्यास मदत करण्यासाठी हायपरलोकल हवामान अंदाज.", "Yield Prediction": "उत्पन्न अंदाज", "Accurate yield forecasting using machine learning and historical data analysis.": "मशीन लर्निंग आणि ऐतिहासिक डेटा विश्लेषणाचा वापर करून अचूक उत्पन्न अंदाज.", "Equipment Rental": "उपकरणे भाड्याने देणे", "Rent farming equipment from nearby farmers and track equipment location in real-time.": "जवळच्या शेतकऱ्यांकडून शेतीची उपकरणे भाड्याने घ्या आणि उपकरणांचे स्थान रिअल-टाइममध्ये ट्रॅक करा.", "Disease Detection": "रोग ओळख", "AI-powered crop disease identification through photo analysis with treatment recommendations.": "उपचार शिफारसींसह फोटो विश्लेषणाद्वारे एआय-चालित पीक रोग ओळख.", "Learning Hub": "शिक्षण केंद्र", "Access farming tutorials, expert advice, and agricultural best practices.": "शेती ट्यूटोरियल, तज्ञांचा सल्ला आणि कृषी सर्वोत्तम पद्धतींमध्ये प्रवेश करा.", "Insurance": "विमा", "Crop insurance management and claims processing with AI damage assessment.": "एआय नुकसान मूल्यांकनासह पीक विमा व्यवस्थापन आणि दावे प्रक्रिया.", "Marketplace": "बाजारपेठ", "Buy and sell crops directly with other farmers and buyers at fair market prices.": "इतर शेतकरी आणि खरेदीदारांसोबत थेट योग्य बाजारभावात पिके खरेदी आणि विक्री करा.", "Community": "समुदाय", "Connect with fellow farmers, share experiences, and get expert advice.": "सहकारी शेतकऱ्यांशी कनेक्ट व्हा, अनुभव शेअर करा आणि तज्ञांचा सल्ला घ्या." },
   };
 
+   const { t, lang, setLang, supportedLangs } = useTranslation();
   type FeatureKey = keyof typeof featureTranslations["en"]
-  const ft = (key: string) => featureTranslations[language][key as FeatureKey]
+  // USE lang from useTranslation(), NOT language
+  const ft = (key: string) => featureTranslations[lang][key as FeatureKey]
 
   const handleGetStarted = () => {
     setIsLoginOpen(true)
   }
 
-  const LanguageSwitcher = () => (
+  
+
+  // --- Language Switcher UI ---
+   const LanguageSwitcher = () => (
     <div className="flex items-center space-x-2">
-      <button onClick={() => setLanguage('en')} className={`text-sm px-2 py-1 rounded ${language === 'en' ? 'bg-forest-green text-white' : 'text-gray-700'}`}>EN</button>
-      <button onClick={() => setLanguage('hi')} className={`text-sm px-2 py-1 rounded ${language === 'hi' ? 'bg-forest-green text-white' : 'text-gray-700'}`}>HI</button>
-      <button onClick={() => setLanguage('mr')} className={`text-sm px-2 py-1 rounded ${language === 'mr' ? 'bg-forest-green text-white' : 'text-gray-700'}`}>MR</button>
+      <button onClick={() => setLang('en')} className={`text-sm px-2 py-1 rounded ${lang === 'en' ? 'bg-forest-green text-white' : 'text-gray-700'}`}>EN</button>
+      <button onClick={() => setLang('hi')} className={`text-sm px-2 py-1 rounded ${lang === 'hi' ? 'bg-forest-green text-white' : 'text-gray-700'}`}>HI</button>
+      <button onClick={() => setLang('mr')} className={`text-sm px-2 py-1 rounded ${lang === 'mr' ? 'bg-forest-green text-white' : 'text-gray-700'}`}>MR</button>
     </div>
   );
 
-  const renderDashboard = () => (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-serif font-bold text-forest-green mb-2">{t.dashboardWelcome}</h1>
-          <p className="text-xl text-gray-600">{t.dashboardDescription}</p>
+    const renderDashboard = () => (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <h1 className="text-4xl font-serif font-bold text-forest-green mb-2">{t.dashboardWelcome}</h1>
+            <p className="text-xl text-gray-600">{t.dashboardDescription}</p>
+          </div>
+  
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {features.map((feature, index) => (
+              <Card
+                key={index}
+                className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden"
+                onClick={() => navigateToPage(feature.page)}
+              >
+                <div
+                  className="absolute inset-0 bg-cover bg-center opacity-25 group-hover:opacity-35 transition-opacity duration-300"
+                  style={{
+                    backgroundImage: `url(${feature.backgroundImage || '/placeholder.svg'})`
+                  }}
+                />
+                <div className="relative z-10">
+                  <CardHeader>
+                    <div className="mb-4 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
+                    <CardTitle className="text-xl font-serif text-forest-green">{ft(feature.titleKey)}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-gray-600 leading-relaxed">{ft(feature.descriptionKey)}</CardDescription>
+                    <Button className="mt-4 w-full bg-forest-green hover:bg-forest-green/90">{t.openFeature} {ft(feature.titleKey)}</Button>
+                  </CardContent>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {features.map((feature, index) => (
-            <Card
-              key={index}
-              className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden"
-              onClick={() => navigateToPage(feature.page)}
-            >
-              <div
-                className="absolute inset-0 bg-cover bg-center opacity-25 group-hover:opacity-35 transition-opacity duration-300"
-                style={{
-                  backgroundImage: `url(${feature.backgroundImage || '/placeholder.svg'})`
-                }}
-              />
-              <div className="relative z-10">
+      </div>
+    )
+  
+    const renderEquipmentRental = () => (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <h1 className="text-4xl font-serif font-bold text-forest-green mb-2">{t.equipmentRentalTitle}</h1>
+            <p className="text-xl text-gray-600">{t.equipmentRentalDescription}</p>
+          </div>
+  
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-semibold">{t.knowYourFarmHealth}</h2>
+                </div>
+                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                  {[
+                    {
+                      name: "Digital Soil pH Tester",
+                      owner: "Agri Solutions Inc.",
+                      price: "₹80",
+                      location: "4.5",
+                      rating: 4.9,
+                      image: "/digital1.jpg?height=200&width=300",
+                      available: true,
+                    },
+                    {
+                      name: "3-in-1 Soil Meter",
+                      owner: "FarmTech Supplies",
+                      price: "₹65",
+                      location: "3.8",
+                      rating: 4.7,
+                      image: "/3-1.jpg?height=200&width=300",
+                      available: true,
+                    },
+                  ].map((equipment, index) => (
+                    <Card key={index} className="overflow-hidden">
+                      <div className="relative">
+                        <img
+                          src={equipment.image || "/placeholder.svg"}
+                          alt={equipment.name}
+                          className="w-full h-48 object-cover"
+                        />
+                        {!equipment.available && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <span className="text-white font-semibold">{t.currentlyRented}</span>
+                          </div>
+                        )}
+                      </div>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold text-lg mb-2">{equipment.name}</h3>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-gray-600">{t.owner}: {equipment.owner}</span>
+                          <div className="flex items-center">
+                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                            <span className="ml-1 text-sm">{equipment.rating}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-2xl font-bold text-forest-green">{equipment.price}{t.pricePerDay}</span>
+                          <span className="text-gray-500 flex items-center">
+                            <MapPin className="h-4 w-4 mr-1" />
+                            {equipment.location} {t.kmAway}
+                          </span>
+                        </div>
+                        <Button
+                          className="w-full bg-forest-green hover:bg-forest-green/90"
+                          disabled={!equipment.available}
+                        >
+                          {equipment.available ? t.rentNow : t.notAvailable}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+  
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-semibold">{t.availableEquipment}</h2>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      <Filter className="h-4 w-4 mr-2" />
+                      {t.filter}
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Search className="h-4 w-4 mr-2" />
+                      {t.search}
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {[
+                    {
+                      name: "John Deere 5075E Tractor",
+                      owner: "Rajesh Kumar",
+                      price: "₹3500",
+                      location: "2.3",
+                      rating: 4.8,
+                      image: "/john-deere-tractor-in-field.png",
+                      available: true,
+                    },
+                    {
+                      name: "Mahindra 575 DI Tractor",
+                      owner: "Suresh Patel",
+                      price: "₹3200",
+                      location: "3.1",
+                      rating: 4.6,
+                      image: "/mahindra-tractor-farming.png",
+                      available: true,
+                    },
+                    {
+                      name: "Combine Harvester",
+                      owner: "Amit Singh",
+                      price: "₹8500",
+                      location: "5.2",
+                      rating: 4.9,
+                      image: "/combine-harvester-wheat.png",
+                      available: false,
+                    },
+                    {
+                      name: "Rotary Tiller",
+                      owner: "Priya Sharma",
+                      price: "₹1800",
+                      location: "1.8",
+                      rating: 4.7,
+                      image: "/rotary-tiller-farming-equipment.png",
+                      available: true,
+                    },
+                  ].map((equipment, index) => (
+                    <Card key={index} className="overflow-hidden">
+                      <div className="relative">
+                        <img
+                          src={equipment.image || "/placeholder.svg"}
+                          alt={equipment.name}
+                          className="w-full h-48 object-cover"
+                        />
+                        {!equipment.available && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <span className="text-white font-semibold">{t.currentlyRented}</span>
+                          </div>
+                        )}
+                      </div>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold text-lg mb-2">{equipment.name}</h3>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-gray-600">{t.owner}: {equipment.owner}</span>
+                          <div className="flex items-center">
+                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                            <span className="ml-1 text-sm">{equipment.rating}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-2xl font-bold text-forest-green">{equipment.price}{t.pricePerDay}</span>
+                          <span className="text-gray-500 flex items-center">
+                            <MapPin className="h-4 w-4 mr-1" />
+                            {equipment.location} {t.kmAway}
+                          </span>
+                        </div>
+                        <Button
+                          className="w-full bg-forest-green hover:bg-forest-green/90"
+                          disabled={!equipment.available}
+                        >
+                          {equipment.available ? t.rentNow : t.notAvailable}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+  
+            <div className="space-y-6">
+              <Card>
                 <CardHeader>
-                  <div className="mb-4 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
-                  <CardTitle className="text-xl font-serif text-forest-green">{ft(feature.titleKey)}</CardTitle>
+                  <CardTitle>{t.yourRentals}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-600 leading-relaxed">{ft(feature.descriptionKey)}</CardDescription>
-                  <Button className="mt-4 w-full bg-forest-green hover:bg-forest-green/90">{t.openFeature} {ft(feature.titleKey)}</Button>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                      <div>
+                        <p className="font-semibold">Kubota Tractor</p>
+                        <p className="text-sm text-gray-600">{t.endsInDays.replace('{count}', '2')}</p>
+                      </div>
+                      <Button size="sm" variant="outline">
+                        {t.track}
+                      </Button>
+                    </div>
+                  </div>
                 </CardContent>
-              </div>
-            </Card>
-          ))}
+              </Card>
+  
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t.quickActions}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button className="w-full bg-transparent" variant="outline">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    {t.scheduleRental}
+                  </Button>
+                  <Button className="w-full bg-transparent" variant="outline">
+                    <Truck className="h-4 w-4 mr-2" />
+                    {t.listMyEquipment}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  )
-
-  const renderEquipmentRental = () => (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-serif font-bold text-forest-green mb-2">{t.equipmentRentalTitle}</h1>
-          <p className="text-xl text-gray-600">{t.equipmentRentalDescription}</p>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg p-6 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-semibold">{t.knowYourFarmHealth}</h2>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
+    )
+  
+    const renderMarketplace = () => (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <h1 className="text-4xl font-serif font-bold text-forest-green mb-2">{t.marketplaceTitle}</h1>
+            <p className="text-xl text-gray-600">{t.marketplaceDescription}</p>
+          </div>
+  
+          <Tabs defaultValue="buy" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="buy">{t.buyCrops}</TabsTrigger>
+              <TabsTrigger value="sell">{t.sellCrops}</TabsTrigger>
+            </TabsList>
+  
+            <TabsContent value="buy">
+              <div className="grid lg:grid-cols-4 gap-6">
                 {[
                   {
-                    name: "Digital Soil pH Tester",
-                    owner: "Agri Solutions Inc.",
-                    price: "₹80",
-                    location: "4.5",
-                    rating: 4.9,
-                    image: "/digital1.jpg?height=200&width=300",
-                    available: true,
-                  },
-                  {
-                    name: "3-in-1 Soil Meter",
-                    owner: "FarmTech Supplies",
-                    price: "₹65",
-                    location: "3.8",
-                    rating: 4.7,
-                    image: "/3-1.jpg?height=200&width=300",
-                    available: true,
-                  },
-                ].map((equipment, index) => (
-                  <Card key={index} className="overflow-hidden">
-                    <div className="relative">
-                      <img
-                        src={equipment.image || "/placeholder.svg"}
-                        alt={equipment.name}
-                        className="w-full h-48 object-cover"
-                      />
-                      {!equipment.available && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                          <span className="text-white font-semibold">{t.currentlyRented}</span>
-                        </div>
-                      )}
-                    </div>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold text-lg mb-2">{equipment.name}</h3>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-600">{t.owner}: {equipment.owner}</span>
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                          <span className="ml-1 text-sm">{equipment.rating}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-2xl font-bold text-forest-green">{equipment.price}{t.pricePerDay}</span>
-                        <span className="text-gray-500 flex items-center">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {equipment.location} {t.kmAway}
-                        </span>
-                      </div>
-                      <Button
-                        className="w-full bg-forest-green hover:bg-forest-green/90"
-                        disabled={!equipment.available}
-                      >
-                        {equipment.available ? t.rentNow : t.notAvailable}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-semibold">{t.availableEquipment}</h2>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    {t.filter}
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Search className="h-4 w-4 mr-2" />
-                    {t.search}
-                  </Button>
-                </div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                {[
-                  {
-                    name: "John Deere 5075E Tractor",
-                    owner: "Rajesh Kumar",
-                    price: "₹3500",
-                    location: "2.3",
+                    name: "Premium Wheat",
+                    farmer: "Rajesh Kumar",
+                    price: "₹35/kg",
+                    quantity: "500",
+                    location: "Punjab, India",
                     rating: 4.8,
-                    image: "/john-deere-tractor-in-field.png",
-                    available: true,
+                    image: "/golden-wheat-grains-harvest.png",
+                    trending: true,
                   },
                   {
-                    name: "Mahindra 575 DI Tractor",
-                    owner: "Suresh Patel",
-                    price: "₹3200",
-                    location: "3.1",
-                    rating: 4.6,
-                    image: "/mahindra-tractor-farming.png",
-                    available: true,
-                  },
-                  {
-                    name: "Combine Harvester",
-                    owner: "Amit Singh",
-                    price: "₹8500",
-                    location: "5.2",
+                    name: "Organic Rice",
+                    farmer: "Priya Sharma",
+                    price: "₹75/kg",
+                    quantity: "300",
+                    location: "West Bengal, India",
                     rating: 4.9,
-                    image: "/combine-harvester-wheat.png",
-                    available: false,
+                    image: "/organic-rice-grains-white.png",
+                    trending: false,
                   },
                   {
-                    name: "Rotary Tiller",
-                    owner: "Priya Sharma",
-                    price: "₹1800",
-                    location: "1.8",
-                    rating: 4.7,
-                    image: "/rotary-tiller-farming-equipment.png",
-                    available: true,
+                    name: "Fresh Corn",
+                    farmer: "Amit Singh",
+                    price: "₹45/kg",
+                    quantity: "750",
+                    location: "Uttar Pradesh, India",
+                    rating: 4.6,
+                    image: "/placeholder.svg?height=200&width=300",
+                    trending: true,
                   },
-                ].map((equipment, index) => (
-                  <Card key={index} className="overflow-hidden">
+                  {
+                    name: "Basmati Rice",
+                    farmer: "Suresh Patel",
+                    price: "₹95/kg",
+                    quantity: "200",
+                    location: "Haryana, India",
+                    rating: 4.9,
+                    image: "/placeholder.svg?height=200&width=300",
+                    trending: false,
+                  },
+                ].map((crop, index) => (
+                  <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="relative">
-                      <img
-                        src={equipment.image || "/placeholder.svg"}
-                        alt={equipment.name}
-                        className="w-full h-48 object-cover"
-                      />
-                      {!equipment.available && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                          <span className="text-white font-semibold">{t.currentlyRented}</span>
+                      <img src={crop.image || "/placeholder.svg"} alt={crop.name} className="w-full h-48 object-cover" />
+                      {crop.trending && (
+                        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                          {t.trending}
                         </div>
                       )}
+                      <Button size="sm" variant="secondary" className="absolute top-2 right-2">
+                        <Heart className="h-4 w-4" />
+                      </Button>
                     </div>
                     <CardContent className="p-4">
-                      <h3 className="font-semibold text-lg mb-2">{equipment.name}</h3>
+                      <h3 className="font-semibold text-lg mb-2">{crop.name}</h3>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-600">{t.owner}: {equipment.owner}</span>
+                        <span className="text-gray-600">{t.by} {crop.farmer}</span>
                         <div className="flex items-center">
                           <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                          <span className="ml-1 text-sm">{equipment.rating}</span>
+                          <span className="ml-1 text-sm">{crop.rating}</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-2xl font-bold text-forest-green">{equipment.price}{t.pricePerDay}</span>
-                        <span className="text-gray-500 flex items-center">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {equipment.location} {t.kmAway}
-                        </span>
+                      <p className="text-sm text-gray-600 mb-2">{crop.quantity} {t.kgAvailable}</p>
+                      <p className="text-sm text-gray-600 mb-4 flex items-center">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        {crop.location}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-2xl font-bold text-forest-green">{crop.price}</span>
+                        <Button size="sm" className="bg-forest-green hover:bg-forest-green/90">
+                          {t.buyNow}
+                        </Button>
                       </div>
-                      <Button
-                        className="w-full bg-forest-green hover:bg-forest-green/90"
-                        disabled={!equipment.available}
-                      >
-                        {equipment.available ? t.rentNow : t.notAvailable}
-                      </Button>
                     </CardContent>
                   </Card>
                 ))}
               </div>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.yourRentals}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                    <div>
-                      <p className="font-semibold">Kubota Tractor</p>
-                      <p className="text-sm text-gray-600">{t.endsInDays.replace('{count}', '2')}</p>
-                    </div>
-                    <Button size="sm" variant="outline">
-                      {t.track}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.quickActions}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button className="w-full bg-transparent" variant="outline">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  {t.scheduleRental}
-                </Button>
-                <Button className="w-full bg-transparent" variant="outline">
-                  <Truck className="h-4 w-4 mr-2" />
-                  {t.listMyEquipment}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
-  const renderMarketplace = () => (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-serif font-bold text-forest-green mb-2">{t.marketplaceTitle}</h1>
-          <p className="text-xl text-gray-600">{t.marketplaceDescription}</p>
-        </div>
-
-        <Tabs defaultValue="buy" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="buy">{t.buyCrops}</TabsTrigger>
-            <TabsTrigger value="sell">{t.sellCrops}</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="buy">
-            <div className="grid lg:grid-cols-4 gap-6">
-              {[
-                {
-                  name: "Premium Wheat",
-                  farmer: "Rajesh Kumar",
-                  price: "₹35/kg",
-                  quantity: "500",
-                  location: "Punjab, India",
-                  rating: 4.8,
-                  image: "/golden-wheat-grains-harvest.png",
-                  trending: true,
-                },
-                {
-                  name: "Organic Rice",
-                  farmer: "Priya Sharma",
-                  price: "₹75/kg",
-                  quantity: "300",
-                  location: "West Bengal, India",
-                  rating: 4.9,
-                  image: "/organic-rice-grains-white.png",
-                  trending: false,
-                },
-                {
-                  name: "Fresh Corn",
-                  farmer: "Amit Singh",
-                  price: "₹45/kg",
-                  quantity: "750",
-                  location: "Uttar Pradesh, India",
-                  rating: 4.6,
-                  image: "/placeholder.svg?height=200&width=300",
-                  trending: true,
-                },
-                {
-                  name: "Basmati Rice",
-                  farmer: "Suresh Patel",
-                  price: "₹95/kg",
-                  quantity: "200",
-                  location: "Haryana, India",
-                  rating: 4.9,
-                  image: "/placeholder.svg?height=200&width=300",
-                  trending: false,
-                },
-              ].map((crop, index) => (
-                <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="relative">
-                    <img src={crop.image || "/placeholder.svg"} alt={crop.name} className="w-full h-48 object-cover" />
-                    {crop.trending && (
-                      <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                        {t.trending}
+            </TabsContent>
+  
+            <TabsContent value="sell">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t.listYourCrops}</CardTitle>
+                  <CardDescription>{t.sellYourHarvest}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="crop-name">{t.cropName}</Label>
+                        <Input id="crop-name" placeholder="e.g., Premium Wheat" />
                       </div>
-                    )}
-                    <Button size="sm" variant="secondary" className="absolute top-2 right-2">
-                      <Heart className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-lg mb-2">{crop.name}</h3>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-600">{t.by} {crop.farmer}</span>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="ml-1 text-sm">{crop.rating}</span>
+                      <div>
+                        <Label htmlFor="quantity">{t.quantityKg}</Label>
+                        <Input id="quantity" type="number" placeholder="500" />
+                      </div>
+                      <div>
+                        <Label htmlFor="price">{t.pricePerKg}</Label>
+                        <Input id="price" type="number" step="0.01" placeholder="2.50" />
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{crop.quantity} {t.kgAvailable}</p>
-                    <p className="text-sm text-gray-600 mb-4 flex items-center">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      {crop.location}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-forest-green">{crop.price}</span>
-                      <Button size="sm" className="bg-forest-green hover:bg-forest-green/90">
-                        {t.buyNow}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="sell">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.listYourCrops}</CardTitle>
-                <CardDescription>{t.sellYourHarvest}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="crop-name">{t.cropName}</Label>
-                      <Input id="crop-name" placeholder="e.g., Premium Wheat" />
-                    </div>
-                    <div>
-                      <Label htmlFor="quantity">{t.quantityKg}</Label>
-                      <Input id="quantity" type="number" placeholder="500" />
-                    </div>
-                    <div>
-                      <Label htmlFor="price">{t.pricePerKg}</Label>
-                      <Input id="price" type="number" step="0.01" placeholder="2.50" />
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="location">{t.location}</Label>
+                        <Input id="location" placeholder="City, State" />
+                      </div>
+                      <div>
+                        <Label htmlFor="harvest-date">{t.harvestDate}</Label>
+                        <Input id="harvest-date" type="date" />
+                      </div>
+                      <div>
+                        <Label htmlFor="description">{t.description}</Label>
+                        <Input id="description" placeholder="Organic, pesticide-free..." />
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="location">{t.location}</Label>
-                      <Input id="location" placeholder="City, State" />
-                    </div>
-                    <div>
-                      <Label htmlFor="harvest-date">{t.harvestDate}</Label>
-                      <Input id="harvest-date" type="date" />
-                    </div>
-                    <div>
-                      <Label htmlFor="description">{t.description}</Label>
-                      <Input id="description" placeholder="Organic, pesticide-free..." />
+                  <div>
+                    <Label>{t.uploadPhotos}</Label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                      <Camera className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                      <p className="text-gray-600">{t.uploadPrompt}</p>
                     </div>
                   </div>
-                </div>
-                <div>
-                  <Label>{t.uploadPhotos}</Label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <Camera className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-600">{t.uploadPrompt}</p>
-                  </div>
-                </div>
-                <Button className="w-full bg-forest-green hover:bg-forest-green/90">{t.listCropForSale}</Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                  <Button className="w-full bg-forest-green hover:bg-forest-green/90">{t.listCropForSale}</Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-    </div>
-  )
-
+    )
+  // --- Community Posts Render ---
   const renderCommunity = () => (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -1497,7 +1529,6 @@ export default function FarmingPlatformLanding() {
           <h1 className="text-4xl font-serif font-bold text-forest-green mb-2">{t.communityTitle}</h1>
           <p className="text-xl text-gray-600">{t.communityDescription}</p>
         </div>
-
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             <Card>
@@ -1537,16 +1568,17 @@ export default function FarmingPlatformLanding() {
                     image: "/community/post-3.jpeg",
                   },
                 ].map((post, index) => {
-                  const selected = postLang[index] || "en"
-                  const translationsForAuthor = postTranslations[post.author]
+                  // Language detection and translation toggle
+                  const selected = postLang[index] || lang;
+                  const translationsForAuthor = postTranslations[post.author];
                   const authorText =
                     selected === "en"
                       ? post.author
-                      : translationsForAuthor?.[selected]?.author || post.author
+                      : translationsForAuthor?.[selected]?.author || post.author;
                   const contentText =
                     selected === "en"
                       ? post.content
-                      : translationsForAuthor?.[selected]?.content || post.content
+                      : translationsForAuthor?.[selected]?.content || post.content;
 
                   return (
                     <div key={index} className="border-b pb-6 last:border-b-0">
@@ -1566,7 +1598,7 @@ export default function FarmingPlatformLanding() {
                             onClick={() => setPostLang((s) => ({ ...s, [index]: cycleLang(selected) }))}
                             className="text-xs px-2 py-1 rounded border bg-forest-green hover:bg-forest-green/90 text-white"
                             aria-label="Toggle translation language"
-                            title="Toggle translation (EN → HI → MR)"
+                            title="Toggle translation (EN → HI → MR → EN)"
                           >
                             {selected.toUpperCase()}
                           </button>
@@ -1579,9 +1611,9 @@ export default function FarmingPlatformLanding() {
                           alt="Post image"
                           className="w-full h-64 object-cover rounded-lg mb-4"
                           onError={(e) => {
-                            const target = e.currentTarget as HTMLImageElement
-                            target.onerror = null
-                            target.src = "/placeholder.svg"
+                            const target = e.currentTarget as HTMLImageElement;
+                            target.onerror = null;
+                            target.src = "/placeholder.svg";
                           }}
                         />
                       )}
@@ -1600,61 +1632,61 @@ export default function FarmingPlatformLanding() {
                         </button>
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </CardContent>
             </Card>
           </div>
-
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.expertQA}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-3 bg-green-50 rounded-lg">
-                    <p className="font-semibold text-sm">Dr. Sarah Johnson</p>
-                    <p className="text-sm text-gray-600">Agricultural Scientist</p>
-                    <p className="text-sm mt-2">Available for questions about soil health and crop rotation</p>
-                    <Button size="sm" className="mt-2 w-full">
-                      {t.askQuestion}
-                    </Button>
-                  </div>
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <p className="font-semibold text-sm">Prof. Michael Chen</p>
-                    <p className="text-sm text-gray-600">Irrigation Specialist</p>
-                    <p className="text-sm mt-2">Expert in water management and smart irrigation systems</p>
-                    <Button size="sm" className="mt-2 w-full">
-                      {t.askQuestion}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t.popularTopics}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {["Organic Farming", "Pest Control", "Soil Health", "Weather Updates", "Equipment Tips"].map(
-                    (topic, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                        <span className="text-sm">{topic}</span>
-                        <span className="text-xs text-gray-500">{Math.floor(Math.random() * 50) + 10} {t.posts}</span>
-                      </div>
-                    ),
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>{t.expertQA}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="p-3 bg-green-50 rounded-lg">
+                              <p className="font-semibold text-sm">Dr. Sarah Johnson</p>
+                              <p className="text-sm text-gray-600">Agricultural Scientist</p>
+                              <p className="text-sm mt-2">Available for questions about soil health and crop rotation</p>
+                              <Button size="sm" className="mt-2 w-full">
+                                {t.askQuestion}
+                              </Button>
+                            </div>
+                            <div className="p-3 bg-blue-50 rounded-lg">
+                              <p className="font-semibold text-sm">Prof. Michael Chen</p>
+                              <p className="text-sm text-gray-600">Irrigation Specialist</p>
+                              <p className="text-sm mt-2">Expert in water management and smart irrigation systems</p>
+                              <Button size="sm" className="mt-2 w-full">
+                                {t.askQuestion}
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+          
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>{t.popularTopics}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            {["Organic Farming", "Pest Control", "Soil Health", "Weather Updates", "Equipment Tips"].map(
+                              (topic, index) => (
+                                <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                                  <span className="text-sm">{topic}</span>
+                                  <span className="text-xs text-gray-500">{Math.floor(Math.random() * 50) + 10} {t.posts}</span>
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
         </div>
       </div>
     </div>
-  )
+  );
 
   const renderLearningHub = () => (
     <div className="min-h-screen bg-gray-50">
