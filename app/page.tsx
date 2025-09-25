@@ -10,6 +10,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -18,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import {
   CloudRain,
   Sprout,
@@ -691,6 +693,55 @@ export default function FarmingPlatformLanding() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
+
+  type CommunityPost = {
+    author: string;
+    time: string;
+    content: string;
+    likes: number;
+    comments: number;
+    image: string | null; // Can be a URL string or null
+  };
+  
+  // Initial posts data moved into a constant
+  const initialPosts: CommunityPost[] = [
+      {
+        author: "Rajesh Kumar",
+        time: "2 hours ago",
+        content:
+          "Just harvested my wheat crop! Yield was 20% higher than last year thanks to the new irrigation techniques I learned here. Thank you community!",
+        likes: 24,
+        comments: 8,
+        image: "/community/post-1.png",
+      },
+      {
+        author: "Priya Sharma",
+        time: "5 hours ago",
+        content:
+          "Has anyone tried organic pest control methods for tomatoes? Looking for natural alternatives to chemical pesticides.",
+        likes: 15,
+        comments: 12,
+        image: null,
+      },
+      {
+        author: "Dr. Amit Verma (Expert)",
+        time: "1 day ago",
+        content:
+          "Weather update: Heavy rains expected next week in North India. Farmers should prepare drainage systems and protect crops from waterlogging.",
+        likes: 45,
+        comments: 18,
+        image: "/community/post-3.jpeg",
+      },
+  ];
+
+  // State to manage all community posts
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(initialPosts);
+  
+  // State for the 'New Post' dialog
+  const [isNewPostDialogOpen, setIsNewPostDialogOpen] = useState(false);
+  const [newPostContent, setNewPostContent] = useState("");
+  const [newPostImage, setNewPostImage] = useState<File | null>(null);
+  const [newPostImagePreview, setNewPostImagePreview] = useState<string | null>(null);
  
 
 
@@ -1077,6 +1128,40 @@ export default function FarmingPlatformLanding() {
     setCurrentPage(page)
   }
 
+  const handleNewPostImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setNewPostImage(file);
+      // Create a temporary local URL for the image to show a preview
+      setNewPostImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleNewPostSubmit = () => {
+    if (!newPostContent.trim()) {
+      // You can add a toast notification here to alert the user
+      alert("Post content cannot be empty.");
+      return;
+    }
+
+    const newPost: CommunityPost = {
+      author: name || "Current User", // Use the logged-in user's name
+      time: "Just now",
+      content: newPostContent,
+      likes: 0,
+      comments: 0,
+      image: newPostImagePreview, // Use the temporary preview URL
+    };
+
+    // Add the new post to the beginning of the posts array
+    setCommunityPosts(prevPosts => [newPost, ...prevPosts]);
+
+    // Reset the form and close the dialog
+    setIsNewPostDialogOpen(false);
+    setNewPostContent("");
+    setNewPostImage(null);
+    setNewPostImagePreview(null);
+  };
   const features = [
     {
       icon: <Sprout className="h-8 w-8 text-forest-green" />,
@@ -1584,40 +1669,66 @@ export default function FarmingPlatformLanding() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>{t.communityPosts}</CardTitle>
-                  <Button className="bg-forest-green hover:bg-forest-green/90">{t.newPost}</Button>
+                  
+                  {/* --- MODIFICATION START: New Post Dialog --- */}
+                  <Dialog open={isNewPostDialogOpen} onOpenChange={setIsNewPostDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-forest-green hover:bg-forest-green/90">{t.newPost}</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Create a New Post</DialogTitle>
+                        <DialogDescription>
+                          Share your thoughts, questions, or updates with the community.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <Textarea
+                          placeholder="What's on your mind, farmer?"
+                          value={newPostContent}
+                          onChange={(e) => setNewPostContent(e.target.value)}
+                          rows={5}
+                          className="w-full"
+                        />
+                         <div>
+                          <Label htmlFor="post-image" className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-forest-green">
+                            <Camera className="h-4 w-4" />
+                            Add a photo (optional)
+                          </Label>
+                          <Input id="post-image" type="file" accept="image/*" className="hidden" onChange={handleNewPostImageChange} />
+                        </div>
+
+                        {newPostImagePreview && (
+                           <div className="relative mt-2">
+                             <img src={newPostImagePreview} alt="Post preview" className="w-full h-auto max-h-60 object-cover rounded-lg" />
+                             <Button
+                               variant="destructive"
+                               size="icon"
+                               className="absolute top-2 right-2 h-7 w-7"
+                               onClick={() => {
+                                 setNewPostImage(null);
+                                 setNewPostImagePreview(null);
+                               }}
+                             >
+                               <X className="h-4 w-4" />
+                             </Button>
+                           </div>
+                        )}
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsNewPostDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleNewPostSubmit} className="bg-forest-green hover:bg-forest-green/90">{t.share}</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                  {/* --- MODIFICATION END --- */}
+
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                {[
-                  {
-                    author: "Rajesh Kumar",
-                    time: "2 hours ago",
-                    content:
-                      "Just harvested my wheat crop! Yield was 20% higher than last year thanks to the new irrigation techniques I learned here. Thank you community!",
-                    likes: 24,
-                    comments: 8,
-                    image: "/community/post-1.png",
-                  },
-                  {
-                    author: "Priya Sharma",
-                    time: "5 hours ago",
-                    content:
-                      "Has anyone tried organic pest control methods for tomatoes? Looking for natural alternatives to chemical pesticides.",
-                    likes: 15,
-                    comments: 12,
-                    image: null,
-                  },
-                  {
-                    author: "Dr. Amit Verma (Expert)",
-                    time: "1 day ago",
-                    content:
-                      "Weather update: Heavy rains expected next week in North India. Farmers should prepare drainage systems and protect crops from waterlogging.",
-                    likes: 45,
-                    comments: 18,
-                    image: "/community/post-3.jpeg",
-                  },
-                ].map((post, index) => {
-                  // Language detection and translation toggle
+                
+                {/* --- MODIFICATION START: Render posts from state --- */}
+                {communityPosts.map((post, index) => {
                   const selected = postLang[index] || lang;
                   const translationsForAuthor = postTranslations[post.author];
                   const authorText =
@@ -1641,28 +1752,29 @@ export default function FarmingPlatformLanding() {
                             <p className="text-sm text-gray-500">{post.time}</p>
                           </div>
                         </div>
-                        {/* Per-post single translate toggle */}
-                        <div>
-                          <button
-                            onClick={() => setPostLang((s) => ({ ...s, [index]: cycleLang(selected) }))}
-                            className="text-xs px-2 py-1 rounded border bg-forest-green hover:bg-forest-green/90 text-white"
-                            aria-label="Toggle translation language"
-                            title="Toggle translation (EN → HI → MR → EN)"
-                          >
-                            {selected.toUpperCase()}
-                          </button>
-                        </div>
+                        {translationsForAuthor && ( // Only show toggle for posts that have translations
+                            <div>
+                              <button
+                                onClick={() => setPostLang((s) => ({ ...s, [index]: cycleLang(selected) }))}
+                                className="text-xs px-2 py-1 rounded border bg-forest-green hover:bg-forest-green/90 text-white"
+                                aria-label="Toggle translation language"
+                                title="Toggle translation (EN → HI → MR → EN)"
+                              >
+                                {selected.toUpperCase()}
+                              </button>
+                            </div>
+                        )}
                       </div>
-                      <p className="mb-4 leading-relaxed">{contentText}</p>
+                      <p className="mb-4 leading-relaxed whitespace-pre-wrap">{contentText}</p>
                       {post.image && (
                         <img
-                          src={post.image || "/placeholder.svg"}
+                          src={post.image}
                           alt="Post image"
-                          className="w-full h-64 object-cover rounded-lg mb-4"
+                          className="w-full h-auto max-h-80 object-cover rounded-lg mb-4"
                           onError={(e) => {
                             const target = e.currentTarget as HTMLImageElement;
                             target.onerror = null;
-                            target.src = "/placeholder.svg";
+                            target.style.display = 'none'; // Hide broken images
                           }}
                         />
                       )}
@@ -1683,60 +1795,60 @@ export default function FarmingPlatformLanding() {
                     </div>
                   );
                 })}
+                {/* --- MODIFICATION END --- */}
               </CardContent>
             </Card>
           </div>
           
-                    <div className="space-y-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>{t.expertQA}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div className="p-3 bg-green-50 rounded-lg">
-                              <p className="font-semibold text-sm">Dr. Sarah Johnson</p>
-                              <p className="text-sm text-gray-600">Agricultural Scientist</p>
-                              <p className="text-sm mt-2">Available for questions about soil health and crop rotation</p>
-                              <Button size="sm" className="mt-2 w-full">
-                                {t.askQuestion}
-                              </Button>
-                            </div>
-                            <div className="p-3 bg-blue-50 rounded-lg">
-                              <p className="font-semibold text-sm">Prof. Michael Chen</p>
-                              <p className="text-sm text-gray-600">Irrigation Specialist</p>
-                              <p className="text-sm mt-2">Expert in water management and smart irrigation systems</p>
-                              <Button size="sm" className="mt-2 w-full">
-                                {t.askQuestion}
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-          
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>{t.popularTopics}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            {["Organic Farming", "Pest Control", "Soil Health", "Weather Updates", "Equipment Tips"].map(
-                              (topic, index) => (
-                                <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                                  <span className="text-sm">{topic}</span>
-                                  <span className="text-xs text-gray-500">{Math.floor(Math.random() * 50) + 10} {t.posts}</span>
-                                </div>
-                              ),
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t.expertQA}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <p className="font-semibold text-sm">Dr. Sarah Johnson</p>
+                    <p className="text-sm text-gray-600">Agricultural Scientist</p>
+                    <p className="text-sm mt-2">Available for questions about soil health and crop rotation</p>
+                    <Button size="sm" className="mt-2 w-full">
+                      {t.askQuestion}
+                    </Button>
+                  </div>
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <p className="font-semibold text-sm">Prof. Michael Chen</p>
+                    <p className="text-sm text-gray-600">Irrigation Specialist</p>
+                    <p className="text-sm mt-2">Expert in water management and smart irrigation systems</p>
+                    <Button size="sm" className="mt-2 w-full">
+                      {t.askQuestion}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>{t.popularTopics}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {["Organic Farming", "Pest Control", "Soil Health", "Weather Updates", "Equipment Tips"].map(
+                    (topic, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                        <span className="text-sm">{topic}</span>
+                        <span className="text-xs text-gray-500">{Math.floor(Math.random() * 50) + 10} {t.posts}</span>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
   );
-
   const renderLearningHub = () => (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
