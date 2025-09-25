@@ -674,9 +674,25 @@ function getBrowserLanguage() {
 
 // --- Translation hook: returns t, lang, setLang, supportedLangs ---
 function useTranslation() {
-  const [lang, setLang] = useState(getBrowserLanguage());
+  const [lang, setLang] = useState(() => {
+    // Check localStorage first, then fall back to browser language
+    if (typeof window !== "undefined") {
+      const savedLang = localStorage.getItem("farmtech-language");
+      if (savedLang) return savedLang;
+    }
+    return getBrowserLanguage();
+  });
+  
   const supportedLangs = Object.keys(translations);
   const currentLang = supportedLangs.includes(lang) ? lang : "en";
+  
+  // Save language to localStorage whenever it changes
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("farmtech-language", lang);
+    }
+  }, [lang]);
+  
   return {
     t: translations[currentLang],
     lang,
@@ -686,13 +702,34 @@ function useTranslation() {
 }
 
 export default function FarmingPlatformLanding() {
+  // Initialize state with localStorage values
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [currentPage, setCurrentPage] = useState("dashboard")
-  const [email, setEmail] = useState("")
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("farmtech-isLoggedIn") === "true";
+    }
+    return false;
+  })
+  const [currentPage, setCurrentPage] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("farmtech-currentPage") || "dashboard";
+    }
+    return "dashboard";
+  })
+  const [email, setEmail] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("farmtech-email") || "";
+    }
+    return "";
+  })
   const [password, setPassword] = useState("")
-  const [name, setName] = useState("")
+  const [name, setName] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("farmtech-name") || "";
+    }
+    return "";
+  })
 
   type CommunityPost = {
     author: string;
@@ -735,7 +772,13 @@ export default function FarmingPlatformLanding() {
   ];
 
   // State to manage all community posts
-  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(initialPosts);
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("farmtech-communityPosts");
+      return saved ? JSON.parse(saved) : initialPosts;
+    }
+    return initialPosts;
+  });
   
   // State for the 'New Post' dialog
   const [isNewPostDialogOpen, setIsNewPostDialogOpen] = useState(false);
@@ -745,7 +788,13 @@ export default function FarmingPlatformLanding() {
  
 
 
-  const [postLang, setPostLang] = useState<Record<number, "en" | "hi" | "mr">>({});
+  const [postLang, setPostLang] = useState<Record<number, "en" | "hi" | "mr">>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("farmtech-postLang");
+      return saved ? JSON.parse(saved) : {};
+    }
+    return {};
+  });
   // Helper to cycle per-post language: en → hi → mr → en
   const cycleLang = (l: "en" | "hi" | "mr"): "en" | "hi" | "mr" => (l === "en" ? "hi" : l === "hi" ? "mr" : "en");
 
@@ -806,7 +855,13 @@ export default function FarmingPlatformLanding() {
     notes?: string
   }
 
-  const [healthLogs, setHealthLogs] = useState<HealthLog[]>([])
+  const [healthLogs, setHealthLogs] = useState<HealthLog[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("farmtech-healthLogs");
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  })
   const [entryDate, setEntryDate] = useState<string>(() => {
     const d = new Date()
     // datetime-local requires no seconds and no Z
@@ -1116,11 +1171,23 @@ export default function FarmingPlatformLanding() {
   const handleLogin = () => {
     setIsLoggedIn(true)
     setIsLoginOpen(false)
-    setCurrentPage("dashboard")
+    // Don't reset currentPage - stay on the same page after login
   }
 
   const handleLogout = () => {
     setIsLoggedIn(false)
+    // Clear user data from localStorage
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("farmtech-isLoggedIn");
+      localStorage.removeItem("farmtech-email");
+      localStorage.removeItem("farmtech-name");
+      localStorage.removeItem("farmtech-currentPage");
+      localStorage.removeItem("farmtech-communityPosts");
+      localStorage.removeItem("farmtech-healthLogs");
+      localStorage.removeItem("farmtech-yieldFormData");
+      localStorage.removeItem("farmtech-postLang");
+      localStorage.removeItem("farmtech-language");
+    }
     setCurrentPage("dashboard")
   }
 
@@ -1243,6 +1310,49 @@ export default function FarmingPlatformLanding() {
   type FeatureKey = keyof typeof featureTranslations["en"]
   // USE lang from useTranslation(), NOT language
   const ft = (key: string) => featureTranslations[lang][key as FeatureKey]
+
+  // useEffect hooks to persist data to localStorage
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("farmtech-isLoggedIn", isLoggedIn.toString());
+    }
+  }, [isLoggedIn]);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("farmtech-currentPage", currentPage);
+    }
+  }, [currentPage]);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("farmtech-email", email);
+    }
+  }, [email]);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("farmtech-name", name);
+    }
+  }, [name]);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("farmtech-communityPosts", JSON.stringify(communityPosts));
+    }
+  }, [communityPosts]);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("farmtech-healthLogs", JSON.stringify(healthLogs));
+    }
+  }, [healthLogs]);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("farmtech-postLang", JSON.stringify(postLang));
+    }
+  }, [postLang]);
 
   const handleGetStarted = () => {
     setIsLoginOpen(true)
@@ -1833,11 +1943,17 @@ export default function FarmingPlatformLanding() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {["Organic Farming", "Pest Control", "Soil Health", "Weather Updates", "Equipment Tips"].map(
-                    (topic, index) => (
+                  {[
+                    { topic: "Organic Farming", posts: 4 },
+                    { topic: "Pest Control", posts: 8 },
+                    { topic: "Soil Health", posts: 5 },
+                    { topic: "Weather Updates", posts: 1 },
+                    { topic: "Equipment Tips", posts: 2 }
+                  ].map(
+                    (item, index) => (
                       <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                        <span className="text-sm">{topic}</span>
-                        <span className="text-xs text-gray-500">{Math.floor(Math.random() * 50) + 10} {t.posts}</span>
+                        <span className="text-sm">{item.topic}</span>
+                        <span className="text-xs text-gray-500">{item.posts} {t.posts}</span>
                       </div>
                     ),
                   )}
@@ -2797,29 +2913,58 @@ export default function FarmingPlatformLanding() {
   const [showYieldForm, setShowYieldForm] = React.useState(false)
   
   // Form state for yield prediction
-  const [yieldFormData, setYieldFormData] = React.useState({
-    N: '',
-    P: '',
-    K: '',
-    temperature: '',
-    humidity: '',
-    ph: '',
-    rainfall: '',
-    fert_temperature: '',
-    fert_humidity: '',
-    moisture: '',
-    soil_type: '',
-    crop_type: '',
-    nitrogen: '',
-    potassium: '',
-    phosphorous: ''
+  const [yieldFormData, setYieldFormData] = React.useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("farmtech-yieldFormData");
+      return saved ? JSON.parse(saved) : {
+        N: '',
+        P: '',
+        K: '',
+        temperature: '',
+        humidity: '',
+        ph: '',
+        rainfall: '',
+        fert_temperature: '',
+        fert_humidity: '',
+        moisture: '',
+        soil_type: '',
+        crop_type: '',
+        nitrogen: '',
+        potassium: '',
+        phosphorous: ''
+      };
+    }
+    return {
+      N: '',
+      P: '',
+      K: '',
+      temperature: '',
+      humidity: '',
+      ph: '',
+      rainfall: '',
+      fert_temperature: '',
+      fert_humidity: '',
+      moisture: '',
+      soil_type: '',
+      crop_type: '',
+      nitrogen: '',
+      potassium: '',
+      phosphorous: ''
+    };
   })
 
   const soilTypes = ['Black', 'Clayey', 'Loamy', 'Red', 'Sandy']
   const cropTypes = ['Barley', 'Cotton', 'Ground Nuts', 'Maize', 'Millets', 'Oil seeds', 'Paddy', 'Pulses', 'Sugarcane', 'Tobacco', 'Wheat']
 
+  // Save yieldFormData to localStorage whenever it changes
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("farmtech-yieldFormData", JSON.stringify(yieldFormData));
+    }
+  }, [yieldFormData]);
+
   const handleYieldFormChange = (field: string, value: string) => {
-    setYieldFormData(prev => ({ ...prev, [field]: value }))
+    setYieldFormData((prev: any) => ({ ...prev, [field]: value }))
   }
 
   const validateYieldForm = (): string | null => {
