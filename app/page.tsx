@@ -48,6 +48,9 @@ import {
   MessageCircle,
   ArrowLeft,
   Upload,
+  RotateCcw,
+  Microscope,
+  ExternalLink,
   CloudSun,
   Satellite,
   Sun,
@@ -2310,6 +2313,87 @@ export default function FarmingPlatformLanding() {
     </div>
   )
 
+  // Disease Detection State
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
+  const [imagePreview, setImagePreview] = React.useState<string | null>(null)
+  const [diseaseLoading, setDiseaseLoading] = React.useState(false)
+  const [diseaseResult, setDiseaseResult] = React.useState<any>(null)
+  const [diseaseError, setDiseaseError] = React.useState<string | null>(null)
+  const [selectedApproach, setSelectedApproach] = React.useState<'torch' | 'keras'>('torch')
+  const [selectedCrop, setSelectedCrop] = React.useState<string>('')
+
+  const cropOptions = ['apple', 'cherry', 'corn', 'grape', 'peach', 'pepper', 'tomato', 'strawberry', 'potato']
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+      // Create preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+      // Reset previous results
+      setDiseaseResult(null)
+      setDiseaseError(null)
+    }
+  }
+
+  const analyzeDiseaseImage = async () => {
+    if (!selectedFile) {
+      setDiseaseError('Please select an image file first')
+      return
+    }
+
+    if (selectedApproach === 'keras' && !selectedCrop) {
+      setDiseaseError('Please select a crop when using per-crop analysis')
+      return
+    }
+
+    setDiseaseLoading(true)
+    setDiseaseError(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+
+      const queryParams = new URLSearchParams({
+        approach: selectedApproach
+      })
+      
+      if (selectedApproach === 'keras' && selectedCrop) {
+        queryParams.append('crop', selectedCrop)
+      }
+
+      const response = await fetch(`http://localhost:8000/disease/predict?${queryParams}`, {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
+      setDiseaseResult(result)
+    } catch (error) {
+      console.error('Disease detection error:', error)
+      setDiseaseError(error instanceof Error ? error.message : 'An error occurred during disease detection')
+    } finally {
+      setDiseaseLoading(false)
+    }
+  }
+
+  const resetDiseaseDetection = () => {
+    setSelectedFile(null)
+    setImagePreview(null)
+    setDiseaseResult(null)
+    setDiseaseError(null)
+    setSelectedCrop('')
+  }
+
   const renderDiseaseDetection = () => (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -2318,21 +2402,166 @@ export default function FarmingPlatformLanding() {
           <p className="text-xl text-gray-600">{t.diseaseDetectionDescription}</p>
         </div>
 
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl text-forest-green">{t.uploadForAnalysis}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600 mb-4">{t.dropImagePrompt}</p>
-              <Button className="bg-forest-green hover:bg-forest-green/90">
-                <Camera className="h-4 w-4 mr-2" />
-                {t.uploadImage}
+        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl text-forest-green">{t.uploadForAnalysis}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Analysis Method Selection */}
+              <div>
+                <Label htmlFor="approach" className="text-base font-medium">Analysis Method</Label>
+                <Select value={selectedApproach} onValueChange={(value: 'torch' | 'keras') => setSelectedApproach(value)}>
+                  <SelectTrigger id="approach">
+                    <SelectValue placeholder="Select analysis method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="torch">General Disease Detection (39 classes)</SelectItem>
+                    <SelectItem value="keras">Crop-Specific Analysis</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Crop Selection for Keras approach */}
+              {selectedApproach === 'keras' && (
+                <div>
+                  <Label htmlFor="crop" className="text-base font-medium">Select Crop</Label>
+                  <Select value={selectedCrop} onValueChange={setSelectedCrop}>
+                    <SelectTrigger id="crop">
+                      <SelectValue placeholder="Select your crop" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cropOptions.map(crop => (
+                        <SelectItem key={crop} value={crop}>{crop.charAt(0).toUpperCase() + crop.slice(1)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* File Upload */}
+              <div>
+                <Label htmlFor="image-upload" className="text-base font-medium">Upload Plant Image</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  {imagePreview ? (
+                    <div className="space-y-4">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="max-w-full max-h-64 mx-auto rounded-lg"
+                      />
+                      <Button 
+                        variant="outline" 
+                        onClick={resetDiseaseDetection}
+                        className="mr-2"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Change Image
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                      <p className="text-gray-600 mb-4">{t.dropImagePrompt}</p>
+                      <input
+                        id="image-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                      />
+                      <Button 
+                        onClick={() => document.getElementById('image-upload')?.click()}
+                        className="bg-forest-green hover:bg-forest-green/90"
+                      >
+                        <Camera className="h-4 w-4 mr-2" />
+                        {t.uploadImage}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Analyze Button */}
+              <Button 
+                onClick={analyzeDiseaseImage}
+                disabled={!selectedFile || diseaseLoading || (selectedApproach === 'keras' && !selectedCrop)}
+                className="w-full bg-forest-green hover:bg-forest-green/90"
+              >
+                {diseaseLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Microscope className="h-4 w-4 mr-2" />
+                    Analyze Disease
+                  </>
+                )}
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl text-forest-green">Analysis Results</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {diseaseError && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-700">{diseaseError}</p>
+                </div>
+              )}
+
+              {diseaseResult && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <h3 className="text-lg font-semibold text-green-800 mb-2">
+                      Disease Detected: {diseaseResult.disease_name}
+                    </h3>
+                    <p className="text-green-700">
+                      Confidence: {(diseaseResult.confidence * 100).toFixed(1)}%
+                    </p>
+                  </div>
+
+                  {diseaseResult.description && (
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h4 className="font-semibold text-blue-800 mb-2">Description</h4>
+                      <p className="text-blue-700 text-sm">{diseaseResult.description}</p>
+                    </div>
+                  )}
+
+                  {diseaseResult.prevention_steps && (
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <h4 className="font-semibold text-yellow-800 mb-2">Prevention Steps</h4>
+                      <p className="text-yellow-700 text-sm">{diseaseResult.prevention_steps}</p>
+                    </div>
+                  )}
+
+                  {diseaseResult.supplement && (
+                    <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                      <h4 className="font-semibold text-purple-800 mb-2">Recommended Supplement</h4>
+                      <p className="text-purple-700 text-sm mb-2">{diseaseResult.supplement.name}</p>
+                      {diseaseResult.supplement.buy_link && (
+                        <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          Buy Supplement
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!diseaseError && !diseaseResult && !diseaseLoading && (
+                <div className="text-center py-8 text-gray-500">
+                  Upload an image and click "Analyze Disease" to get started
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         <Card className="mb-8">
           <CardHeader>
@@ -2368,6 +2597,143 @@ export default function FarmingPlatformLanding() {
     </div>
   )
 
+  // Yield Prediction State
+  const [yieldLoading, setYieldLoading] = React.useState(false)
+  const [yieldResult, setYieldResult] = React.useState<any>(null)
+  const [yieldError, setYieldError] = React.useState<string | null>(null)
+  const [showYieldForm, setShowYieldForm] = React.useState(false)
+  
+  // Form state for yield prediction
+  const [yieldFormData, setYieldFormData] = React.useState({
+    N: '',
+    P: '',
+    K: '',
+    temperature: '',
+    humidity: '',
+    ph: '',
+    rainfall: '',
+    fert_temperature: '',
+    fert_humidity: '',
+    moisture: '',
+    soil_type: '',
+    crop_type: '',
+    nitrogen: '',
+    potassium: '',
+    phosphorous: ''
+  })
+
+  const soilTypes = ['Black', 'Clayey', 'Loamy', 'Red', 'Sandy']
+  const cropTypes = ['Barley', 'Cotton', 'Ground Nuts', 'Maize', 'Millets', 'Oil seeds', 'Paddy', 'Pulses', 'Sugarcane', 'Tobacco', 'Wheat']
+
+  const handleYieldFormChange = (field: string, value: string) => {
+    setYieldFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const validateYieldForm = (): string | null => {
+    const requiredFields = [
+      'N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall',
+      'fert_temperature', 'fert_humidity', 'moisture', 'soil_type', 'crop_type',
+      'nitrogen', 'potassium', 'phosphorous'
+    ]
+    
+    for (const field of requiredFields) {
+      if (!yieldFormData[field as keyof typeof yieldFormData]) {
+        return `Please fill in all required fields. Missing: ${field.replace('_', ' ')}`
+      }
+    }
+    
+    // Validate numeric fields
+    const numericFields = [
+      'N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall',
+      'fert_temperature', 'fert_humidity', 'moisture', 'nitrogen', 'potassium', 'phosphorous'
+    ]
+    
+    for (const field of numericFields) {
+      const value = parseFloat(yieldFormData[field as keyof typeof yieldFormData])
+      if (isNaN(value)) {
+        return `${field.replace('_', ' ')} must be a valid number`
+      }
+    }
+    
+    return null
+  }
+
+  const predictYieldAndFertilizer = async () => {
+    const validationError = validateYieldForm()
+    if (validationError) {
+      setYieldError(validationError)
+      return
+    }
+
+    setYieldLoading(true)
+    setYieldError(null)
+
+    try {
+      const payload = {
+        N: parseFloat(yieldFormData.N),
+        P: parseFloat(yieldFormData.P),
+        K: parseFloat(yieldFormData.K),
+        temperature: parseFloat(yieldFormData.temperature),
+        humidity: parseFloat(yieldFormData.humidity),
+        ph: parseFloat(yieldFormData.ph),
+        rainfall: parseFloat(yieldFormData.rainfall),
+        fert_temperature: parseFloat(yieldFormData.fert_temperature),
+        fert_humidity: parseFloat(yieldFormData.fert_humidity),
+        moisture: parseFloat(yieldFormData.moisture),
+        soil_type: yieldFormData.soil_type,
+        crop_type: yieldFormData.crop_type,
+        nitrogen: parseFloat(yieldFormData.nitrogen),
+        potassium: parseFloat(yieldFormData.potassium),
+        phosphorous: parseFloat(yieldFormData.phosphorous)
+      }
+
+      const response = await fetch('http://localhost:8000/yield-and-fertilizer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
+      setYieldResult(result)
+      setShowYieldForm(false)
+    } catch (error) {
+      console.error('Yield prediction error:', error)
+      setYieldError(error instanceof Error ? error.message : 'An error occurred during yield prediction')
+    } finally {
+      setYieldLoading(false)
+    }
+  }
+
+  const resetYieldPrediction = () => {
+    setYieldResult(null)
+    setYieldError(null)
+    setShowYieldForm(false)
+    setYieldFormData({
+      N: '',
+      P: '',
+      K: '',
+      temperature: '',
+      humidity: '',
+      ph: '',
+      rainfall: '',
+      fert_temperature: '',
+      fert_humidity: '',
+      moisture: '',
+      soil_type: '',
+      crop_type: '',
+      nitrogen: '',
+      potassium: '',
+      phosphorous: ''
+    })
+  }
+
   const renderYieldPrediction = () => (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -2376,124 +2742,319 @@ export default function FarmingPlatformLanding() {
           <p className="text-xl text-gray-600">{t.yieldPredictionDescription}</p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8 mb-12">
-          <Card>
+        {!showYieldForm && !yieldResult && (
+          <div className="text-center mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl text-forest-green">Get AI-Powered Recommendations</CardTitle>
+                <CardDescription>
+                  Enter your soil and environmental conditions to get crop and fertilizer recommendations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={() => setShowYieldForm(true)}
+                  className="bg-forest-green hover:bg-forest-green/90"
+                  size="lg"
+                >
+                  <BarChart3 className="h-5 w-5 mr-2" />
+                  Start Analysis
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {showYieldForm && (
+          <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="text-2xl text-forest-green">{t.currentSeasonPrediction}</CardTitle>
+              <CardTitle className="text-2xl text-forest-green">Soil & Environmental Data</CardTitle>
+              <CardDescription>
+                Please provide accurate measurements for best results
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              {(() => {
-                const result = computePredictedYield()
-                const baseline = 3.8
-                const deltaPct = Math.round(((result.value - baseline) / baseline) * 100)
-                return (
-                  <div>
-                    <div className="text-center mb-6">
-                      <div className="text-4xl font-bold text-green-600 mb-2">{result.value} tons/acre</div>
-                      <p className="text-gray-600">{t.predictedYield}</p>
-                      <div className={`text-sm ${deltaPct >= 0 ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"} p-2 rounded mt-2`}>
-                        {deltaPct >= 0 ? `Approximately ${deltaPct}% above baseline` : `Approximately ${Math.abs(deltaPct)}% below baseline`}
-                      </div>
-                    </div>
-                    <div className="space-y-1 text-sm text-gray-700">
-                      <div className="font-semibold">Factors considered:</div>
-                      <ul className="list-disc pl-5 space-y-1">
-                        {avg?.moisture !== undefined && <li>{t.soilMoisture}: {avg.moisture.toFixed(1)}%</li>}
-                        {avg?.ph !== undefined && <li>{t.soilPH}: {avg.ph.toFixed(1)}</li>}
-                        {avg?.ndvi !== undefined && <li>{t.ndviIndex}: {avg.ndvi.toFixed(2)}</li>}
-                        {avg?.soilType && <li>Soil Type: {avg.soilType}</li>}
-                        {weather && (
-                          <li>
-                            Weather: {weather.temperature ?? "-"}°C, RH {weather.relative_humidity ?? "-"}%,
-                            Prec {weather.precipitation ?? "-"}mm
-                          </li>
-                        )}
-                      </ul>
-                    </div>
-                  </div>
-                )
-              })()}
+            <CardContent className="space-y-6">
+              {yieldError && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-700">{yieldError}</p>
+                </div>
+              )}
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="N">Nitrogen (N) Content</Label>
+                  <Input
+                    id="N"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 90"
+                    value={yieldFormData.N}
+                    onChange={(e) => handleYieldFormChange('N', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="P">Phosphorus (P) Content</Label>
+                  <Input
+                    id="P"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 42"
+                    value={yieldFormData.P}
+                    onChange={(e) => handleYieldFormChange('P', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="K">Potassium (K) Content</Label>
+                  <Input
+                    id="K"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 43"
+                    value={yieldFormData.K}
+                    onChange={(e) => handleYieldFormChange('K', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="temperature">Temperature (°C)</Label>
+                  <Input
+                    id="temperature"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 20.8"
+                    value={yieldFormData.temperature}
+                    onChange={(e) => handleYieldFormChange('temperature', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="humidity">Humidity (%)</Label>
+                  <Input
+                    id="humidity"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 82"
+                    value={yieldFormData.humidity}
+                    onChange={(e) => handleYieldFormChange('humidity', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="ph">Soil pH</Label>
+                  <Input
+                    id="ph"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 6.5"
+                    value={yieldFormData.ph}
+                    onChange={(e) => handleYieldFormChange('ph', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="rainfall">Rainfall (mm)</Label>
+                  <Input
+                    id="rainfall"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 202"
+                    value={yieldFormData.rainfall}
+                    onChange={(e) => handleYieldFormChange('rainfall', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="fert_temperature">Field Temperature (°C)</Label>
+                  <Input
+                    id="fert_temperature"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 26"
+                    value={yieldFormData.fert_temperature}
+                    onChange={(e) => handleYieldFormChange('fert_temperature', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="fert_humidity">Field Humidity (%)</Label>
+                  <Input
+                    id="fert_humidity"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 52"
+                    value={yieldFormData.fert_humidity}
+                    onChange={(e) => handleYieldFormChange('fert_humidity', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="moisture">Soil Moisture (%)</Label>
+                  <Input
+                    id="moisture"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 38"
+                    value={yieldFormData.moisture}
+                    onChange={(e) => handleYieldFormChange('moisture', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="nitrogen">Nitrogen Value</Label>
+                  <Input
+                    id="nitrogen"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 37"
+                    value={yieldFormData.nitrogen}
+                    onChange={(e) => handleYieldFormChange('nitrogen', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="potassium">Potassium Value</Label>
+                  <Input
+                    id="potassium"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 0"
+                    value={yieldFormData.potassium}
+                    onChange={(e) => handleYieldFormChange('potassium', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phosphorous">Phosphorus Value</Label>
+                  <Input
+                    id="phosphorous"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g., 0"
+                    value={yieldFormData.phosphorous}
+                    onChange={(e) => handleYieldFormChange('phosphorous', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="soil_type">Soil Type</Label>
+                  <Select value={yieldFormData.soil_type} onValueChange={(value) => handleYieldFormChange('soil_type', value)}>
+                    <SelectTrigger id="soil_type">
+                      <SelectValue placeholder="Select soil type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {soilTypes.map(type => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="crop_type">Crop Type</Label>
+                  <Select value={yieldFormData.crop_type} onValueChange={(value) => handleYieldFormChange('crop_type', value)}>
+                    <SelectTrigger id="crop_type">
+                      <SelectValue placeholder="Select crop type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cropTypes.map(type => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex space-x-4 pt-4">
+                <Button 
+                  onClick={predictYieldAndFertilizer}
+                  disabled={yieldLoading}
+                  className="bg-forest-green hover:bg-forest-green/90"
+                >
+                  {yieldLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      Get Recommendations
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowYieldForm(false)}
+                  disabled={yieldLoading}
+                >
+                  Cancel
+                </Button>
+              </div>
             </CardContent>
           </Card>
+        )}
 
-          <Card>
+        {yieldResult && (
+          <div className="grid lg:grid-cols-2 gap-8 mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl text-forest-green">Recommended Crop</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-green-600 mb-2">
+                    {yieldResult.recommended_crop}
+                  </div>
+                  <p className="text-gray-600">Best crop for your conditions</p>
+                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                    <p className="text-green-700 text-sm">
+                      This crop is recommended based on your soil's NPK levels, environmental conditions, and climate data.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl text-forest-green">Recommended Fertilizer</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-blue-600 mb-2">
+                    {yieldResult.fertilizer}
+                  </div>
+                  <p className="text-gray-600">Optimal fertilizer for your soil</p>
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <p className="text-blue-700 text-sm">
+                      This fertilizer composition will provide the best nutrients for your selected crop type and soil conditions.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {yieldResult && (
+          <Card className="mb-8">
             <CardHeader>
               <CardTitle className="text-2xl text-forest-green">{t.benefits}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="bg-green-50 p-3 rounded">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-green-50 p-4 rounded">
                   <h4 className="font-semibold text-green-800">{t.betterPlanning}</h4>
                   <p className="text-green-700 text-sm">{t.betterPlanningDesc}</p>
                 </div>
-                <div className="bg-blue-50 p-3 rounded">
+                <div className="bg-blue-50 p-4 rounded">
                   <h4 className="font-semibold text-blue-800">{t.maximizeRevenue}</h4>
                   <p className="text-blue-700 text-sm">{t.maximizeRevenueDesc}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-        </div>
+        )}
 
-        <div className="grid lg:grid-cols-2 gap-8 mb-12">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl text-forest-green">Weather Conditions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {weatherLoading ? (
-                <div className="text-gray-600">Fetching weather...</div>
-              ) : weatherError ? (
-                <div className="text-red-600">{weatherError}</div>
-              ) : weather ? (
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="bg-white border rounded p-3">
-                    <div className="text-sm text-gray-500">Temperature</div>
-                    <div className="text-xl font-semibold">{weather.temperature}°C</div>
-                  </div>
-                  <div className="bg-white border rounded p-3">
-                    <div className="text-sm text-gray-500">Humidity</div>
-                    <div className="text-xl font-semibold">{weather.relative_humidity}%</div>
-                  </div>
-                  <div className="bg-white border rounded p-3">
-                    <div className="text-sm text-gray-500">Precipitation</div>
-                    <div className="text-xl font-semibold">{weather.precipitation} mm</div>
-                  </div>
-                  <div className="bg-white border rounded p-3">
-                    <div className="text-sm text-gray-500">Wind</div>
-                    <div className="text-xl font-semibold">{weather.wind_speed} m/s</div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-gray-600">Weather unavailable.</div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl text-forest-green">Location (OpenStreetMap)</CardTitle>
-              <CardDescription>
-                Coordinates: {LOCATION.dms} ({LOCATION.lat.toFixed(6)}, {LOCATION.lon.toFixed(6)})
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {(() => {
-                const pad = 0.0015
-                const bbox = `${LOCATION.lon - pad},${LOCATION.lat - pad},${LOCATION.lon + pad},${LOCATION.lat + pad}`
-                const marker = `${LOCATION.lat},${LOCATION.lon}`
-                const src = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(marker)}`
-                return (
-                  <div className="w-full aspect-[16/9] overflow-hidden rounded border">
-                    <iframe title="OpenStreetMap" className="w-full h-full" src={src} />
-                  </div>
-                )
-              })()}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="text-center">
+        <div className="text-center space-x-4">
+          {yieldResult && (
+            <Button
+              onClick={resetYieldPrediction}
+              variant="outline"
+              className="border-forest-green text-forest-green hover:bg-forest-green hover:text-white"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              New Analysis
+            </Button>
+          )}
           <Button
             onClick={() => setCurrentPage("dashboard")}
             className="bg-forest-green hover:bg-forest-green/90"
