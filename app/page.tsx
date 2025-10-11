@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+import ReactMarkdown from "react-markdown"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -2718,30 +2719,47 @@ const postTranslations: Record<string, {
               category: "Crop Management",
             },
           ].map((course, index) => (
-            <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <a href={course.url} target="_blank" rel="noopener noreferrer" className="block">
-                <div className="relative">
-                  <img src={course.image || "/placeholder.svg"} alt={course.title} className="w-full h-48 object-cover" />
-                  <div className="absolute top-2 left-2 bg-forest-green text-white px-2 py-1 rounded text-xs">
-                    {course.category}
+            <Card
+              key={index}
+              className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+              role="link"
+              tabIndex={0}
+              onClick={() => window.open(course.url, '_blank', 'noopener,noreferrer')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  window.open(course.url, '_blank', 'noopener,noreferrer');
+                }
+              }}
+            >
+              <div className="relative">
+                <img src={course.image || "/placeholder.svg"} alt={course.title} className="w-full h-48 object-cover" />
+                <div className="absolute top-2 left-2 bg-forest-green text-white px-2 py-1 rounded text-xs">
+                  {course.category}
+                </div>
+              </div>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-lg mb-2">{course.title}</h3>
+                <p className="text-gray-600 text-sm mb-2">{t.by} {course.instructor}</p>
+                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                  <span>{course.duration}</span>
+                  <div className="flex items-center">
+                    <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
+                    {course.rating}
                   </div>
                 </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-lg mb-2">{course.title}</h3>
-                  <p className="text-gray-600 text-sm mb-2">{t.by} {course.instructor}</p>
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <span>{course.duration}</span>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                      {course.rating}
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-4">{course.students} {t.studentsEnrolled}</p>
-                  <Button asChild className="w-full bg-forest-green hover:bg-forest-green/90">
-                    <a href={course.url} target="_blank" rel="noopener noreferrer">{t.startLearning}</a>
-                  </Button>
-                </CardContent>
-              </a>
+                <p className="text-sm text-gray-600 mb-4">{course.students} {t.studentsEnrolled}</p>
+                <Button
+                  type="button"
+                  className="w-full bg-forest-green hover:bg-forest-green/90"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(course.url, '_blank', 'noopener,noreferrer')
+                  }}
+                >
+                  {t.startLearning}
+                </Button>
+              </CardContent>
             </Card>
           ))}
         </div>
@@ -2752,26 +2770,170 @@ const postTranslations: Record<string, {
             <CardDescription>{t.aiAssistantDescription}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center space-x-4">
-              <Input placeholder={t.askAnything} className="flex-1" />
-              <Button className="bg-forest-green hover:bg-forest-green/90">
-                <Mic className="h-4 w-4 mr-2" />
-                {t.ask}
+            <div className="flex items-center space-x-2">
+              <Input
+                placeholder={t.askAnything}
+                className="flex-1"
+                value={aiQuestion}
+                onChange={(e) => setAiQuestion(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAskAI()
+                }}
+              />
+              <Select value={aiResponseLang} onValueChange={(v) => setAiResponseLang(v as any)}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Lang" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">EN</SelectItem>
+                  <SelectItem value="hi">हिन्दी</SelectItem>
+                  <SelectItem value="mr">मराठी</SelectItem>
+                  <SelectItem value="kn">ಕನ್ನಡ</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={handleAskAI} disabled={aiLoading} className="bg-forest-green hover:bg-forest-green/90">
+                {aiLoading ? (
+                  <>
+                    <Mic className="h-4 w-4 mr-2 animate-pulse" />
+                    Thinking...
+                  </>
+                ) : (
+                  <>
+                    <Mic className="h-4 w-4 mr-2" />
+                    {t.ask}
+                  </>
+                )}
               </Button>
             </div>
-            <div className="mt-4 p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">Recent Question:</p>
-              <p className="font-semibold">"What's the best time to plant tomatoes in North India?"</p>
-              <p className="text-sm mt-2">
-                The optimal time to plant tomatoes in North India is during the winter season, typically from October to
-                December for the main crop...
-              </p>
-            </div>
+
+            {aiAnswer && (
+              <div className="mt-4 p-4 bg-green-50 rounded-lg prose prose-sm max-w-none">
+                <p className="text-sm text-gray-600 mb-2">Answer:</p>
+                <div className="text-gray-800">
+                  <ReactMarkdown>{aiAnswer}</ReactMarkdown>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
     </div>
   )
+
+  // --- AI Assistant (Gemini) state and handlers ---
+  const [aiQuestion, setAiQuestion] = useState("")
+  const [aiAnswer, setAiAnswer] = useState<string | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiResponseLang, setAiResponseLang] = useState<"en" | "hi" | "mr" | "kn">(lang)
+
+  const isFarmingRelated = (q: string) => {
+    const s = q.toLowerCase()
+    const keywords = [
+      "farm", "farming", "agri", "agriculture", "crop", "soil", "irrigation", "pest", "fertilizer", "manure",
+      "seed", "sowing", "harvest", "yield", "weather", "monsoon", "drought", "watering", "compost",
+      "mulch", "livestock", "dairy", "greenhouse", "polyhouse", "orchard", "horticulture", "planting",
+      "disease", "fungus", "insect", "weed", "spray", "tractor", "equipment"
+    ]
+    return keywords.some(k => s.includes(k))
+  }
+
+  const handleAskAI = async () => {
+    const q = aiQuestion.trim()
+    if (!q) return
+
+    // Guardrail: only answer farming-related questions
+    if (!isFarmingRelated(q)) {
+      setAiAnswer("I can only answer farming and agriculture related questions. Please ask about crops, soil, irrigation, pests, weather, yield, etc.")
+      return
+    }
+
+    try {
+      setAiLoading(true)
+      setAiAnswer(null)
+      const apiKey = "AIzaSyCZI-JMIqUt_XCU5Tb_0Sf0v6n7gxNi_Jw"
+  const system = `You are an expert Indian agriculture assistant. Answer briefly, in simple, practical steps.
+Only answer farming-related questions. If a query is not about farming, politely refuse.
+Prefer India-specific context when relevant (climate zones, monsoon, crops).`
+  const langInstr: Record<"en"|"hi"|"mr"|"kn", string> = {
+    en: "Respond in English.",
+    hi: "Respond in Hindi (हिन्दी) using Devanagari script.",
+    mr: "Respond in Marathi (मराठी) using Devanagari script.",
+    kn: "Respond in Kannada (ಕನ್ನಡ) using Kannada script."
+  }
+  const userPrompt = `${system}\nResponse language: ${langInstr[aiResponseLang]}\n\nUser question: ${q}`
+
+      async function generateV1beta(model: string, prompt: string): Promise<string> {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
+        const resp = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: prompt }]
+              }
+            ]
+          })
+        })
+        if (!resp.ok) {
+          const text = await resp.text().catch(() => '')
+          throw new Error(`Gemini v1beta HTTP ${resp.status}: ${text}`)
+        }
+        const data = await resp.json()
+        const candidate = data?.candidates?.[0]
+        const partText = candidate?.content?.parts?.[0]?.text
+        if (!partText) throw new Error('Empty response')
+        return partText as string
+      }
+
+      async function generateV1(model: string, prompt: string): Promise<string> {
+        const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`
+        const resp = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: prompt }]
+              }
+            ]
+          })
+        })
+        if (!resp.ok) {
+          const text = await resp.text().catch(() => '')
+          throw new Error(`Gemini v1 HTTP ${resp.status}: ${text}`)
+        }
+        const data = await resp.json()
+        const candidate = data?.candidates?.[0]
+        const partText = candidate?.content?.parts?.[0]?.text
+        if (!partText) throw new Error('Empty response')
+        return partText as string
+      }
+
+      let answer = ''
+      try {
+        // Try v1beta with the newest flash first
+        answer = await generateV1beta('gemini-2.5-flash', userPrompt)
+      } catch (e0) {
+        try {
+          answer = await generateV1beta('gemini-1.5-flash', userPrompt)
+        } catch (e1) {
+          // Fallback to v1 1.0 pro
+          answer = await generateV1('gemini-1.0-pro', userPrompt)
+        }
+      }
+      setAiAnswer(answer || "Sorry, I couldn't generate an answer.")
+    } catch (err: any) {
+      setAiAnswer("There was an error getting an answer. Please try again.")
+      console.error("Gemini error", err)
+    } finally {
+      setAiLoading(false)
+    }
+  }
 
   const renderIrrigation = () => (
     <div className="min-h-screen bg-gray-50">

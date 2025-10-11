@@ -9,6 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
@@ -54,6 +55,7 @@
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.60.0",
     "react-i18next": "^15.7.3",
+    "react-markdown": "^10.1.0",
     "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.4",
     "sonner": "^1.7.4",
