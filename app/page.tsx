@@ -107,6 +107,20 @@ const voiceCommands = {
     { phrases: ["विमा"], action: "insurance" },
     { phrases: ["लॉग आउट करा", "साइन आउट करा"], action: "logout" },
   ],
+  kn: [
+    { phrases: ["ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹೋಗಿ", "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ತೆರೆಯಿರಿ"], action: "dashboard" },
+    { phrases: ["ಉಪಕರಣ ಬಾಡಿಗೆ", "ಉಪಕರಣಗಳನ್ನು ತೆರೆಯಿರಿ"], action: "equipment-rental" },
+    { phrases: ["ಮಾರುಕಟ್ಟೆ"], action: "marketplace" },
+    { phrases: ["ಸಮುದಾಯ"], action: "community" },
+    { phrases: ["ಕಲಿಕಾ ಕೇಂದ್ರ"], action: "learning-hub" },
+    { phrases: ["ನೀರಾವರಿ"], action: "irrigation" },
+    { phrases: ["ಫಾರ್ಮ್ ಆರೋಗ್ಯ"], action: "crop-analysis" },
+    { phrases: ["ಹವಾಮಾನ ಮುನ್ಸೂಚನೆ"], action: "weather" },
+    { phrases: ["ಇಳುವರಿ ಭವಿಷ್ಯವಾಣಿ"], action: "yield-prediction" },
+    { phrases: ["ರೋಗ ಪತ್ತೆ"], action: "disease-detection" },
+    { phrases: ["ವಿಮೆ"], action: "insurance" },
+    { phrases: ["ಲಾಗ್ ಔಟ್ ಮಾಡಿ"], action: "logout" },
+  ],
 };
 
 // --- TRANSLATIONS OBJECT ---
@@ -657,6 +671,204 @@ const translations = {
     maximizeRevenue: "महसूल वाढवा",
     maximizeRevenueDesc: "सर्वोत्तम किंमतींसाठी बाजारातील विक्रीची वेळ साधा",
   },
+  kn: {
+    // Landing Page
+    appName: "ಕೃಷಿಮಿತ್ರ",
+    tagline1: "ಬುದ್ಧಿವಂತಿಕೆಯಿಂದ ಬೆಳೆಯಿರಿ.",
+    tagline2: "ಭವಿಷ್ಯದ ಕೊಯ್ಲನ್ನು ಮಾಡಿರಿ.",
+    heroDescription: "ಆಧುನಿಕ ಕೃಷಿಗಾಗಿ AI ಚಾಲಿತ ಒಳನೋಟಗಳು. ಧ್ವನಿ ನಿಯಂತ್ರಣ ಸಾಮರ್ಥ್ಯಗಳೊಂದಿಗೆ ನಿಮ್ಮ ಕೃಷಿಯನ್ನು ರೂಪಾಂತರಿಸಿ.",
+    getStarted: "ಪ್ರಾರಂಭಿಸಿ",
+    watchDemo: "ಡೆಮೊ ವೀಕ್ಷಿಸಿ",
+    navHome: "ಮುಖಪುಟ",
+    navFeatures: "ವೈಶಿಷ್ಟ್ಯಗಳು",
+    navAbout: "ನಮ್ಮ ಬಗ್ಗೆ",
+    navContact: "ಸಂಪರ್ಕ",
+    login: "ಲಾಗಿನ್",
+    signup: "ಸೈನ್ ಅಪ್",
+
+    featuresTitle: "ಸ್ಮಾರ್ಟ್ ಕೃಷಿ ಪರಿಹಾರಗಳು",
+    featuresDescription: "AI, IoT, ಧ್ವನಿ ತಂತ್ರಜ್ಞಾನದ ಶಕ್ತಿಯನ್ನು ಬಳಸಿ ನಿಮ್ಮ ಕೃಷಿಯನ್ನು ಅಧಿಕೃತಗೊಳಿಸಿ",
+
+    aboutTitle: "ಕೃಷಿಯ ಭವಿಷ್ಯಕ್ಕೆ ಮೇಲ್ವಿಚಾರಣೆ",
+    aboutDescription: "ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ ಮತ್ತು ಧ್ವನಿ ತಂತ್ರಜ್ಞಾನದಿಂದ ಕೃಷಿಯಲ್ಲಿ ಕ್ರಾಂತಿ.",
+    aboutPoint1: "AI ಚಾಲಿತ ಬೆಳೆ ಆಪ್ಟಿಮೈಜೆಷನ್",
+    aboutPoint2: "ಧ್ವನಿ ನಿಯಂತ್ರಿತ ಪ್ಲಾಟ್‌ಫಾರ್ಮ್ ನಿರ್ವಹಣೆ",
+    aboutPoint3: "ಹ್ಯಾಂಡ್ಸ್-ಫ್ರೀ ಉಪಕರಣ ಹದಗಾಣಿಕೆ",
+    aboutPoint4: "ಸುಸ್ಥಿರ ಕೃಷಿ ಅಭ್ಯಾಸಗಳು",
+    aboutPoint5: "ರಿಯಲ್-ಟೈಂ ಸಹಾಯ",
+    voiceControlled: "ನಿಯಂತ್ರಿತ",
+
+    ctaTitle: "ನಿಮ್ಮ ಖೇತ್ ಬದಲಾಯಿಸಲು ತಯಾರೇ?",
+    ctaDescription: "AI ಒಳನೋಟಗಳು ಮತ್ತು ಧ್ವನಿ ನಿಯಂತ್ರಣದೊಂದಿಗೆ ಭವಿಷ್ಯಕ್ಕೆ ಕಾಲಿಡಿ",
+    startFreeTrial: "ಉಚಿತ ಪ್ರಯೋಗ ಪ್ರಾರಂಭಿಸಿ",
+    scheduleDemo: "ಡೆಮೊ ಶೆಡ್ಯೂಲ್ ಮಾಡಿ",
+
+    footerDescription: "ಸಮರ್ಥನೀಯ ಮತ್ತು ಲಾಭದಾಯಕ ಕೃಷಿಗಾಗಿ AI ಚಾಲಿತ ಒಳನೋಟಗಳೊಂದಿಗೆ ರೈತರನ್ನು ಸಶಕ್ತಗೊಳಿಸುವುದು.",
+    footerProduct: "ಉತ್ಪಾದನೆ",
+    footerPricing: "ಬೆಲೆ ನಿರ್ಣಯ",
+    footerAPI: "API",
+    footerIntegrations: "ಏಕೀಕರಣಗಳು",
+    footerCompany: "ಕಂಪನಿ",
+    footerBlog: "ಬ್ಲಾಗ್",
+    footerCareers: "ವೃತ್ತಿ",
+    footerNewsletter: "ವಾರ್ತಾಪತ್ರ",
+    newsletterDescription: "ಕೃಷಿ ಒಳನೋಟಗಳೊಂದಿಗೆ ಅಪ್‌ಡೇಟ್ ಆಗಿರಿ",
+    subscribe: "ಸಬ್‌ಸ್ಕ್ರೈಬ್",
+    enterEmail: "ನಿಮ್ಮ ಇಮೇಲ್ ನಮೂದಿಸಿ",
+    rightsReserved: "© 2024 ಕೃಷಿಮಿತ್ರ. ಎಲ್ಲಾ ಹಕ್ಕುಗಳನ್ನು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ.",
+    privacyPolicy: "ಗೌಪ್ಯತೆ ನೀತಿ",
+    termsOfService: "ಸೇವೆಯ ನಿಯಮಗಳು",
+    cookiePolicy: "ಕುಕೀ ನೀತಿ",
+
+    // Login Dialog
+    dialogTitle: "ಕೃಷಿಮಿತ್ರಗೆ ಸ್ವಾಗತ",
+    dialogDescription: "ಸ್ಮಾರ್ಟ್ ಕೃಷಿಯ ಭವಿಷ್ಯದಲ್ಲಿ ಸೇರಿ",
+    fullName: "ಪೂರ್ಣ ಹೆಸರು",
+    email: "ಇಮೇಲ್",
+    password: "ಗುಪ್ತಪದ",
+    createAccount: "ಖಾತೆ ರಚಿಸಿ",
+    continueWith: "ಅಥವಾ ಇದರೊಂದಿಗೆ ಮುಂದುವರಿಸಿ",
+    google: "ಗೂಗಲ್",
+    facebook: "ಫೇಸ್‌ಬುಕ್",
+    signIn: "ಸೈನ್ ಇನ್",
+
+    // Logged In App
+    logout: "ಲಾಗ್ ಔಟ್",
+    dashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+    equipment: "ಉಪಕರಣ",
+    marketplace: "ಮಾರುಕಟ್ಟೆ",
+    community: "ಸಮುದಾಯ",
+    learning: "ಕಲಿಕೆ",
+    dashboardWelcome: "ನಿಮ್ಮ ಫಾರ್ಮ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಸ್ವಾಗತ",
+    dashboardDescription: "ಒಂದೇ ಸ್ಥಳದಲ್ಲಿ ಸಂಪೂರ್ಣ ಕೃಷಿ ನಿರ್ವಹಣೆ",
+    openFeature: "ತೆರೆಯಿರಿ",
+    backToDashboard: "ಹಿಂದೆ ಹೋಗಿ",
+
+    // Equipment Rental Page
+    equipmentRentalTitle: "ಉಪಕರಣ ಬಾಡಿಗೆ",
+    equipmentRentalDescription: "ಹತ್ತಿರದ ರೈತರಿಂದ ಉಪಕರಣ ಬಾಡಿಗೆ ಮಾಡಿ",
+    knowYourFarmHealth: "ನಿಮ್ಮ ಫಾರ್ಮ್ ಆರೋಗ್ಯ ತಿಳಿಯಿರಿ",
+    availableEquipment: "ಲಭ್ಯವಿರುವ ಉಪಕರಣಗಳು",
+    filter: "ಫಿಲ್ಟರ್",
+    search: "ಹುಡುಕು",
+    owner: "ಮಾಲೀಕ",
+    pricePerDay: "/ದಿನ",
+    kmAway: "ಕಿ.ಮೀ ದೂರ",
+    rentNow: "ಈಗ ಬಾಡಿಗೆ ಮಾಡಿ",
+    notAvailable: "ಲಭ್ಯವಿಲ್ಲ",
+    currentlyRented: "ಈಗ ಬಾಡಿಗೆ",
+    yourRentals: "ನಿಮ್ಮ ಬಾಡಿಗೆಗಳು",
+    endsInDays: "{count} ದಿನಗಳಲ್ಲಿ ಅಂತ್ಯ",
+    track: "ಟ್ರ್ಯಾಕ್",
+    quickActions: "ಶೀಘ್ರ ಕ್ರಿಯೆಗಳು",
+    scheduleRental: "ಬಾಡಿಗೆ ಶೆಡ್ಯೂಲ್",
+    listMyEquipment: "ನನ್ನ ಉಪಕರಣ ಪಟ್ಟಿ",
+
+    // Marketplace Page
+    marketplaceTitle: "ಮಾರುಕಟ್ಟೆ",
+    marketplaceDescription: "ನ್ಯಾಯವಾದ ಬೆಲೆಗೆ ಬೆಳೆ ಖರೀದಿ/ಮಾರಾಟ",
+    buyCrops: "ಬೆಳೆ ಖರೀದಿ",
+    sellCrops: "ಬೆಳೆ ಮಾರಾಟ",
+    trending: "ಜೋರು",
+    by: "ಗೆ",
+    kgAvailable: "ಕೆಜಿ ಲಭ್ಯ",
+    buyNow: "ಈಗ ಖರೀದಿ",
+    listYourCrops: "ನಿಮ್ಮ ಬೆಳೆಗಳನ್ನು ಪಟ್ಟಿ ಮಾಡಿ",
+    sellYourHarvest: "ನಿಮ್ಮ ಕೊಯ್ಲು ನೇರವಾಗಿ ಖರೀದಿದಾರರಿಗೆ ಮಾರಾಟ ಮಾಡಿ",
+    cropName: "ಬೆಳೆಯ ಹೆಸರು",
+    quantityKg: "ಪ್ರಮಾಣ (ಕೆಜಿ)",
+    pricePerKg: "ಪ್ರತಿ ಕೆಜಿ ಬೆಲೆ (₹)",
+    location: "ಸ್ಥಳ",
+    harvestDate: "ಕೊಯ್ಲು ದಿನಾಂಕ",
+    description: "ವಿವರಣೆ",
+    uploadPhotos: "ಫೋಟೋಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+    uploadPrompt: "ಬೆಳೆ ಫೋಟೋಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
+    listCropForSale: "ಮಾರಾಟಕ್ಕಾಗಿ ಬೆಳೆ ಪಟ್ಟಿ",
+
+    // Community Page
+    communityTitle: "ರೈತ ಸಮುದಾಯ",
+    communityDescription: "ಸಹ ರೈತರೊಂದಿಗೆ ಸಂಪರ್ಕ, ಹಂಚಿಕೆ ಮತ್ತು ಕಲಿಯಿರಿ",
+    communityPosts: "ಸಮುದಾಯ ಪೋಸ್ಟ್‌ಗಳು",
+    newPost: "ಹೊಸ ಪೋಸ್ಟ್",
+    share: "ಹಂಚಿಕೊಳ್ಳಿ",
+    expertQA: "ತಜ್ಞರ ಪ್ರಶ್ನೋತ್ತರ",
+    askQuestion: "ಪ್ರಶ್ನೆ ಕೇಳಿ",
+    popularTopics: "ಜನಪ್ರಿಯ ವಿಷಯಗಳು",
+    posts: "ಪೋಸ್ಟ್‌ಗಳು",
+
+    // Learning Hub Page
+    learningHubTitle: "ಕಲಿಕಾ ಕೇಂದ್ರ",
+    learningHubDescription: "ತಜ್ಞರ ಮಾರ್ಗದರ್ಶನದೊಂದಿಗೆ ಆಧುನಿಕ ಕೃಷಿ ತಂತ್ರಗಳಲ್ಲಿ ಪಾರಂಗತರಾಗಿ",
+    watchPreview: "ಪೂರ್ವವೀಕ್ಷಣೆ ವೀಕ್ಷಿಸಿ",
+    studentsEnrolled: "ವಿದ್ಯಾರ್ಥಿಗಳು ಸೇರಿಕೊಂಡಿದ್ದಾರೆ",
+    startLearning: "ಕಲಿಕೆ ಪ್ರಾರಂಭಿಸಿ",
+    aiAssistant: "AI ಕೃಷಿ ಸಹಾಯಕ",
+    aiAssistantDescription: "ನಿಮ್ಮ ಕೃಷಿ ಪ್ರಶ್ನೆಗಳಿಗೆ ತ್ವರಿತ ಉತ್ತರಗಳನ್ನು ಪಡೆಯಿರಿ",
+    askAnything: "ಕೃಷಿಯ ಬಗ್ಗೆ ನನಗೆ ಏನು ಬೇಕಾದರೂ ಕೇಳಿ...",
+    ask: "ಕೇಳಿ",
+
+    // Irrigation Page
+    irrigationTitle: "ನೀರಾವರಿ ಸ್ಥಾಪನೆ ಪಡೆಯಿರಿ",
+    irrigationDescription: "ಸ್ಥಾಪನೆ ಮತ್ತು ನಿರ್ವಹಣೆಗಾಗಿ ವಿಶ್ವಾಸಾರ್ಹ ಸ್ಥಳೀಯ ನೀರಾವರಿ ಸೇವಾ ಪೂರೈಕೆದಾರರೊಂದಿಗೆ ಸಂಪರ್ಕ ಸಾಧಿಸಿ.",
+    whySmartIrrigation: "ಸ್ಮಾರ್ಟ್ ನೀರಾವರಿ ಏಕೆ?",
+    irrigationBenefitText: "ಸಾಂಪ್ರದಾಯಿಕ ನೀರಾವರಿ ವಿಧಾನಗಳು 50% ವರೆಗೆ ನೀರು ವ್ಯರ್ಥ ಮಾಡುತ್ತವೆ. ಸ್ಮಾರ್ಟ್ ನೀರಾವರಿ ವ್ಯವಸ್ಥೆಗಳು ಸರಿಯಾದ ಸಮಯದಲ್ಲಿ ಸರಿಯಾದ ಪ್ರಮಾಣದ ನೀರನ್ನು ಒದಗಿಸಲು ಸಂವೇದಕಗಳು, ಹವಾಮಾನ ಡೇಟಾ ಮತ್ತು AI ಬಳಸುತ್ತವೆ.",
+    keyBenefits: "ಮುಖ್ಯ ಪ್ರಯೋಜನಗಳು",
+    benefit1: "40% ವರೆಗೆ ನೀರಿನ ಬಳಕೆ ಉಳಿಸಿ",
+    benefit2: "ನೀರಾವರಿ ವೆಚ್ಚವನ್ನು 30% ಕಡಿಮೆಗೊಳಿಸಿ",
+    benefit3: "ಬೆಳೆಯ ಇಳುವರಿಯನ್ನು 15-25% ಹೆಚ್ಚಿಸಿ",
+    benefit4: "ಅಧಿಕ/ಕಡಿಮೆ ನೀರು ನೀಡುವುದನ್ನು ತಡೆಯಿರಿ",
+    successStory: "ಯಶಸ್ಸಿನ ಕಥೆ",
+    farmerStory: "\"ನನ್ನ 5 ಎಕರೆ ಗೋಧಿ ಹೊಲದಲ್ಲಿ ಸ್ಮಾರ್ಟ್ ನೀರಾವರಿ ಸ್ಥಾಪಿಸಿದ ನಂತರ, ನಾನು ನೀರಿನ ಬಳಕೆಯನ್ನು 35% ಕಡಿಮೆಗೊಳಿಸಿದೆ ಮತ್ತು ಇಳುವರಿಯನ್ನು 20% ಹೆಚ್ಚಿಸಿದೆ. ಈ ವ್ಯವಸ್ಥೆಯು 2 ಋತುಗಳಲ್ಲಿ ತನ್ನ ವೆಚ್ಚವನ್ನು ತಿರುಗಿಸಿಕೊಳ್ಳುತ್ತದೆ!\"",
+    waterSaved: "ನೀರು ಉಳಿಸಲಾಗಿದೆ",
+    yieldIncrease: "ಇಳುವರಿ ಹೆಚ್ಚಳ",
+    annualSavings: "ವಾರ್ಷಿಕ ಉಳಿತಾಯ",
+
+    // Insurance Page
+    insuranceTitle: "ಬೆಳೆ ವಿಮೆ",
+    insuranceDescription: "ನಿಮ್ಮ ಬೆಳೆಗಳನ್ನು ರಕ್ಷಿಸಿ ಮತ್ತು ನಿಮ್ಮ ಕೃಷಿ ಹೂಡಿಕೆಯನ್ನು ಭದ್ರಗೊಳಿಸಿ",
+    whatIsCropInsurance: "ಬೆಳೆ ವಿಮೆ ಏನು?",
+    insuranceBenefitText: "ಬೆಳೆ ವಿಮೆಯು ನೈಸರ್ಗಿಕ ವಿಪತ್ತುಗಳು, ಹವಾಮಾನ ಪರಿಸ್ಥಿತಿಗಳು, ಕೀಟಗಳು ಮತ್ತು ರೋಗಗಳಿಂದಾಗುವ ಆರ್ಥಿಕ ನಷ್ಟದಿಂದ ರೈತರನ್ನು ರಕ್ಷಿಸುತ್ತದೆ.",
+    coverageIncludes: "ಕವರೇಜ್‌ನಲ್ಲಿ ಒಳಗೊಂಡಿದೆ",
+    coverage1: "ಬರ ಮತ್ತು ಪ್ರವಾಹ ಹಾನಿ",
+    coverage2: "ಆಲಿಕಲ್ಲು ಮತ್ತು ಗಾಳಿ ಬಿರುಗಾಳಿ",
+    coverage3: "ಕೀಟ ಮತ್ತು ರೋಗ ಪ್ರಕೋಪ",
+    coverage4: "ಬೆಂಕಿ ಮತ್ತು ಮಿಂಚು ಬಡಿತ",
+    govtSchemes: "ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು",
+
+    // Crop Monitoring Page
+    cropMonitoringTitle: "ಫಾರ್ಮ್ ಆರೋಗ್ಯ ಮೇಲ್ವಿಚಾರಣೆ",
+    cropMonitoringDescription: "IoT ಸೆನ್ಸರ್‌ಗಳನ್ನು ಬಳಸಿಕೊಂಡು ಸುಧಾರಿತ ಫಾರ್ಮ್ ಆರೋಗ್ಯ ಮೇಲ್ವಿಚಾರಣೆ",
+    liveMonitoringData: "ಫಾರ್ಮ್ ಆರೋಗ್ಯ ಮೇಲ್ವಿಚಾರಣೆ ಡೇಟಾ",
+    soilMoisture: "ಮಣ್ಣಿನ ತೇವಾಂಶ",
+    soilPH: "ಮಣ್ಣಿನ pH",
+    temperature: "ತಾಪಮಾನ",
+    ndviIndex: "NDVI ಸೂಚ್ಯಂಕ",
+
+    // Weather Forecast Page
+    weatherForecastTitle: "ಹವಾಮಾನ ಮುನ್ಸೂಚನೆ",
+    weatherForecastDescription: "ಉತ್ತಮ ಕೃಷಿ ನಿರ್ಧಾರಗಳಿಗಾಗಿ ನಿಖರವಾದ ಹವಾಮಾನ ಭವಿಷ್ಯವಾಣಿಗಳೊಂದಿಗೆ ಮುಂದೆ ಇರಿ",
+    sevenDayForecast: "ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ಆಧರಿಸಿದ 7-ದಿನದ ಹವಾಮಾನ ಮುನ್ಸೂಚನೆ",
+
+    // Disease Detection Page
+    diseaseDetectionTitle: "ರೋಗ ಪತ್ತೆ",
+    diseaseDetectionDescription: "AI ಚಾಲಿತ ಬೆಳೆ ರೋಗ ಗುರುತಿಸುವಿಕೆ ಮತ್ತು ತಡೆಗಟ್ಟುವಿಕೆ",
+    uploadForAnalysis: "ವಿಶ್ಲೇಷಣೆಗಾಗಿ ಚಿತ್ರ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+    dropImagePrompt: "ನಿಮ್ಮ ಬೆಳೆ ಚಿತ್ರವನ್ನು ಇಲ್ಲಿ ಬಿಡಿ ಅಥವಾ ಬ್ರೌಸ್ ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
+    uploadImage: "ಚಿತ್ರ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+    commonCropDiseases: "ಸಾಮಾನ್ಯ ಬೆಳೆ ರೋಗಗಳು",
+
+    // Yield Prediction Page
+    yieldPredictionTitle: "ಇಳುವರಿ ಭವಿಷ್ಯವಾಣಿ",
+    yieldPredictionDescription: "ಉತ್ತಮ ಯೋಜನೆ ಮತ್ತು ಮಾರಾಟಕ್ಕಾಗಿ AI ಚಾಲಿತ ಇಳುವರಿ ಮುನ್ಸೂಚನೆ",
+    currentSeasonPrediction: "ಪ್ರಸ್ತುತ ಋತು ಭವಿಷ್ಯವಾಣಿ",
+    predictedYield: "ಅಂದಾಜು ಗೋಧಿ ಇಳುವರಿ",
+    yieldAboveLast: "ಕಳೆದ ಋತುಕ್ಕಿಂತ 15% ಹೆಚ್ಚು",
+    benefits: "ಪ್ರಯೋಜನಗಳು",
+    betterPlanning: "ಉತ್ತಮ ಯೋಜನೆ",
+    betterPlanningDesc: "ಕೊಯ್ಲು ಮತ್ತು ಶೇಖರಣೆಯ ಮುಂಚಿತ ಯೋಜನೆ",
+    maximizeRevenue: "ಆದಾಯ ಹೆಚ್ಚಿಸಿ",
+    maximizeRevenueDesc: "ಉತ್ತಮ ಬೆಲೆಗಳಿಗಾಗಿ ಮಾರುಕಟ್ಟೆ ಮಾರಾಟದ ಸಮಯ ನಿರ್ಧಾರಿಸಿ",
+  }, 
 } as const;
 
 
@@ -773,13 +985,7 @@ export default function FarmingPlatformLanding() {
   ];
 
   // State to manage all community posts
-  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("farmtech-communityPosts");
-      return saved ? JSON.parse(saved) : initialPosts;
-    }
-    return initialPosts;
-  });
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(initialPosts);
   
   // State for the 'New Post' dialog
   const [isNewPostDialogOpen, setIsNewPostDialogOpen] = useState(false);
@@ -789,21 +995,22 @@ export default function FarmingPlatformLanding() {
  
 
 
-  const [postLang, setPostLang] = useState<Record<number, "en" | "hi" | "mr">>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("farmtech-postLang");
-      return saved ? JSON.parse(saved) : {};
-    }
-    return {};
-  });
-  // Helper to cycle per-post language: en → hi → mr → en
-  const cycleLang = (l: "en" | "hi" | "mr"): "en" | "hi" | "mr" => (l === "en" ? "hi" : l === "hi" ? "mr" : "en");
+const [postLang, setPostLang] = useState<Record<number, "en" | "hi" | "mr" | "kn">>({});
+
+// Helper to cycle per-post language: en → hi → mr → kn → en
+const cycleLang = (l: "en" | "hi" | "mr" | "kn"): "en" | "hi" | "mr" | "kn" => {
+    if (l === "en") return "hi";
+    if (l === "hi") return "mr";
+    if (l === "mr") return "kn"; // Added this line for Kannada
+    return "en"; // kn → en
+};
 
   // --- Hardcoded translations for current community posts (author + content) ---
-  const postTranslations: Record<string, {
+const postTranslations: Record<string, {
     hi: { author: string; content: string }
     mr: { author: string; content: string }
-  }> = {
+    kn: { author: string; content: string } // Added Kannada type
+}> = {
     "Rajesh Kumar": {
       hi: {
         author: "राजेश कुमार",
@@ -815,6 +1022,13 @@ export default function FarmingPlatformLanding() {
         content:
           "आत्ताच मी माझ्या गव्हाची कापणी केली! इथे शिकलेल्या नवीन सिंचन तंत्रांमुळे या वर्षीची उत्पादकता गेल्या वर्षाच्या तुलनेत 20% जास्त झाली. समुदायाचे आभार!",
       },
+      // --- ADDED KANNADA TRANSLATION ---
+      kn: {
+        author: "ರಾಜೇಶ್ ಕುಮಾರ್",
+        content:
+          "ಈಗ ತಾನೇ ನನ್ನ ಗೋಧಿ ಬೆಳೆಯನ್ನು ಕೊಯ್ಲು ಮಾಡಿದ್ದೇನೆ! ಇಲ್ಲಿ ಕಲಿತ ಹೊಸ ನೀರಾವರಿ ತಂತ್ರಗಳಿಂದಾಗಿ ಇಳುವರಿ ಕಳೆದ ವರ್ಷಕ್ಕಿಂತ 20% ಹೆಚ್ಚಾಗಿದೆ. ಸಮುದಾಯಕ್ಕೆ ಧನ್ಯವಾದಗಳು!",
+      },
+      // ------------------------------------
     },
     "Priya Sharma": {
       hi: {
@@ -827,6 +1041,13 @@ export default function FarmingPlatformLanding() {
         content:
           "टोमॅटोसाठी सेंद्रिय कीड नियंत्रणाच्या पद्धती कोणी वापरल्या आहेत का? रासायनिक कीटकनाशकांना नैसर्गिक पर्याय शोधत आहे.",
       },
+      // --- ADDED KANNADA TRANSLATION ---
+      kn: {
+        author: "ಪ್ರಿಯಾ ಶರ್ಮಾ",
+        content:
+          "ಯಾರಾದರೂ ಟೊಮೆಟೊಗಳಿಗಾಗಿ ಸಾವಯವ ಕೀಟ ನಿಯಂತ್ರಣ ವಿಧಾನಗಳನ್ನು ಪ್ರಯತ್ನಿಸಿದ್ದೀರಾ? ರಾಸಾಯನಿಕ ಕೀಟನಾಶಕಗಳಿಗೆ ನೈಸರ್ಗಿಕ ಪರ್ಯಾಯಗಳನ್ನು ಹುಡುಕುತ್ತಿದ್ದೇನೆ.",
+      },
+      // ------------------------------------
     },
     "Dr. Amit Verma (Expert)": {
       hi: {
@@ -839,9 +1060,15 @@ export default function FarmingPlatformLanding() {
         content:
           "हवामान अपडेट: पुढील आठवड्यात उत्तर भारतात मुसळधार पावसाची शक्यता. शेतकऱ्यांनी पाणी निचरा व्यवस्था तयार ठेवावी आणि पिकांना पाणथळीतून संरक्षण द्यावे.",
       },
+      // --- ADDED KANNADA TRANSLATION ---
+      kn: {
+        author: "ಡಾ. ಅಮಿತ್ ವರ್ಮಾ (ತಜ್ಞ)",
+        content:
+          "ಹವಾಮಾನ ಮಾಹಿತಿ: ಮುಂದಿನ ವಾರ ಉತ್ತರ ಭಾರತದಲ್ಲಿ ಭಾರಿ ಮಳೆಯ ನಿರೀಕ್ಷೆಯಿದೆ. ರೈತರು ಒಳಚರಂಡಿ ವ್ಯವಸ್ಥೆಗಳನ್ನು ಸಿದ್ಧಪಡಿಸಿಕೊಳ್ಳಬೇಕು ಮತ್ತು ಬೆಳೆಗಳನ್ನು ನೀರಿನಿಂದ ರಕ್ಷಿಸಿಕೊಳ್ಳಬೇಕು.",
+      },
+      // ------------------------------------
     },
-  }
-
+}
   
 
   // --- Farm Health Monitoring state ---
@@ -1305,6 +1532,28 @@ export default function FarmingPlatformLanding() {
     en: { "Farm Health Monitoring": "Farm Health Monitoring", "Real-time monitoring of your farm's health with AI-powered insights for soil and crops.": "Real-time monitoring of your farm's health with AI-powered insights for soil and crops.", "Get Irrigation Setup": "Get Irrigation Setup", "Connect with local irrigation service providers for setup and maintenance.": "Connect with local irrigation service providers for setup and maintenance.", "Weather Forecasting": "Weather Forecasting", "Hyperlocal weather predictions to help you make informed farming decisions.": "Hyperlocal weather predictions to help you make informed farming decisions.", "Yield Prediction": "Yield Prediction", "Accurate yield forecasting using machine learning and historical data analysis.": "Accurate yield forecasting using machine learning and historical data analysis.", "Equipment Rental": "Equipment Rental", "Rent farming equipment from nearby farmers and track equipment location in real-time.": "Rent farming equipment from nearby farmers and track equipment location in real-time.", "Disease Detection": "Disease Detection", "AI-powered crop disease identification through photo analysis with treatment recommendations.": "AI-powered crop disease identification through photo analysis with treatment recommendations.", "Learning Hub": "Learning Hub", "Access farming tutorials, expert advice, and agricultural best practices.": "Access farming tutorials, expert advice, and agricultural best practices.", "Insurance": "Insurance", "Crop insurance management and claims processing with AI damage assessment.": "Crop insurance management and claims processing with AI damage assessment.", "Marketplace": "Marketplace", "Buy and sell crops directly with other farmers and buyers at fair market prices.": "Buy and sell crops directly with other farmers and buyers at fair market prices.", "Community": "Community", "Connect with fellow farmers, share experiences, and get expert advice.": "Connect with fellow farmers, share experiences, and get expert advice." },
     hi: { "Farm Health Monitoring": "फार्म स्वास्थ्य की निगरानी", "Real-time monitoring of your farm's health with AI-powered insights for soil and crops.": "मिट्टी और फसलों के लिए एआई-संचालित अंतर्दृष्टि के साथ अपने खेत के स्वास्थ्य की वास्तविक समय में निगरानी।", "Get Irrigation Setup": "सिंचाई सेटअप", "Connect with local irrigation service providers for setup and maintenance.": "सेटअप और रखरखाव के लिए स्थानीय सिंचाई सेवा प्रदाताओं से जुड़ें।", "Weather Forecasting": "मौसम का विवरण", "Hyperlocal weather predictions to help you make informed farming decisions.": "आपको सूचित खेती के निर्णय लेने में मदद करने के लिए हाइपरलोकल मौसम की भविष्यवाणी।", "Yield Prediction": "उपज की भविष्यवाणी", "Accurate yield forecasting using machine learning and historical data analysis.": "मशीन लर्निंग और ऐतिहासिक डेटा विश्लेषण का उपयोग करके सटीक उपज का पूर्वानुमान।", "Equipment Rental": "उपकरण किराया", "Rent farming equipment from nearby farmers and track equipment location in real-time.": "आस-पास के किसानों से खेती के उपकरण किराए पर लें और वास्तविक समय में उपकरण के स्थान को ट्रैक करें।", "Disease Detection": "रोग का पता लगाना", "AI-powered crop disease identification through photo analysis with treatment recommendations.": "उपचार सिफारिशों के साथ फोटो विश्लेषण के माध्यम से एआई-संचालित फसल रोग की पहचान।", "Learning Hub": "सीखने का केंद्र", "Access farming tutorials, expert advice, and agricultural best practices.": "खेती ट्यूटोरियल, विशेषज्ञ सलाह, और कृषि सर्वोत्तम प्रथाओं तक पहुंचें।", "Insurance": "बीमा", "Crop insurance management and claims processing with AI damage assessment.": "एआई क्षति मूल्यांकन के साथ फसल बीमा प्रबंधन और दावा प्रसंस्करण।", "Marketplace": "बाजार", "Buy and sell crops directly with other farmers and buyers at fair market prices.": "अन्य किसानों और खरीदारों के साथ सीधे उचित बाजार मूल्य पर फसलें खरीदें और बेचें।", "Community": "समुदाय", "Connect with fellow farmers, share experiences, and get expert advice.": "साथी किसानों से जुड़ें, अनुभव साझा करें, और विशेषज्ञ सलाह प्राप्त करें।" },
     mr: { "Farm Health Monitoring": "फार्म आरोग्य निरीक्षण", "Real-time monitoring of your farm's health with AI-powered insights for soil and crops.": "माती आणि पिकांसाठी एआय-चालित अंतर्दृष्टीसह आपल्या शेताच्या आरोग्याचे रिअल-टाइम निरीक्षण.", "Get Irrigation Setup": "सिंचन सेटअप", "Connect with local irrigation service providers for setup and maintenance.": "सेटअप आणि देखभालीसाठी स्थानिक सिंचन सेवा प्रदात्यांशी कनेक्ट व्हा.", "Weather Forecasting": "हवामान तपशील", "Hyperlocal weather predictions to help you make informed farming decisions.": "तुम्हाला माहितीपूर्ण शेती निर्णय घेण्यास मदत करण्यासाठी हायपरलोकल हवामान अंदाज.", "Yield Prediction": "उत्पन्न अंदाज", "Accurate yield forecasting using machine learning and historical data analysis.": "मशीन लर्निंग आणि ऐतिहासिक डेटा विश्लेषणाचा वापर करून अचूक उत्पन्न अंदाज.", "Equipment Rental": "उपकरणे भाड्याने देणे", "Rent farming equipment from nearby farmers and track equipment location in real-time.": "जवळच्या शेतकऱ्यांकडून शेतीची उपकरणे भाड्याने घ्या आणि उपकरणांचे स्थान रिअल-टाइममध्ये ट्रॅक करा.", "Disease Detection": "रोग ओळख", "AI-powered crop disease identification through photo analysis with treatment recommendations.": "उपचार शिफारसींसह फोटो विश्लेषणाद्वारे एआय-चालित पीक रोग ओळख.", "Learning Hub": "शिक्षण केंद्र", "Access farming tutorials, expert advice, and agricultural best practices.": "शेती ट्यूटोरियल, तज्ञांचा सल्ला आणि कृषी सर्वोत्तम पद्धतींमध्ये प्रवेश करा.", "Insurance": "विमा", "Crop insurance management and claims processing with AI damage assessment.": "एआय नुकसान मूल्यांकनासह पीक विमा व्यवस्थापन आणि दावे प्रक्रिया.", "Marketplace": "बाजारपेठ", "Buy and sell crops directly with other farmers and buyers at fair market prices.": "इतर शेतकरी आणि खरेदीदारांसोबत थेट योग्य बाजारभावात पिके खरेदी आणि विक्री करा.", "Community": "समुदाय", "Connect with fellow farmers, share experiences, and get expert advice.": "सहकारी शेतकऱ्यांशी कनेक्ट व्हा, अनुभव शेअर करा आणि तज्ञांचा सल्ला घ्या." },
+    kn: {
+        "Farm Health Monitoring": "ಫಾರ್ಮ್ ಆರೋಗ್ಯ ಮೇಲ್ವಿಚಾರಣೆ",
+        "Real-time monitoring of your farm's health with AI-powered insights for soil and crops.": "ಮಣ್ಣು ಮತ್ತು ಬೆಳೆಗಳಿಗಾಗಿ AI ಚಾಲಿತ ಒಳನೋಟಗಳೊಂದಿಗೆ ನಿಮ್ಮ ಫಾರ್ಮ್‌ನ ಆರೋಗ್ಯದ ನೈಜ-ಸಮಯದ ಮೇಲ್ವಿಚಾರಣೆ.",
+        "Get Irrigation Setup": "ನೀರಾವರಿ ಸ್ಥಾಪನೆ ಪಡೆಯಿರಿ",
+        "Connect with local irrigation service providers for setup and maintenance.": "ಸ್ಥಾಪನೆ ಮತ್ತು ನಿರ್ವಹಣೆಗಾಗಿ ಸ್ಥಳೀಯ ನೀರಾವರಿ ಸೇವಾ ಪೂರೈಕೆದಾರರೊಂದಿಗೆ ಸಂಪರ್ಕ ಸಾಧಿಸಿ.",
+        "Weather Forecasting": "ಹವಾಮಾನ ಮುನ್ಸೂಚನೆ",
+        "Hyperlocal weather predictions to help you make informed farming decisions.": "ಮಾಹಿತಿಯುಕ್ತ ಕೃಷಿ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳಲು ನಿಮಗೆ ಸಹಾಯ ಮಾಡಲು ಹೈಪರ್‌ಲೋಕಲ್ ಹವಾಮಾನ ಮುನ್ಸೂಚನೆಗಳು.",
+        "Yield Prediction": "ಇಳುವರಿ ಭವಿಷ್ಯವಾಣಿ",
+        "Accurate yield forecasting using machine learning and historical data analysis.": "ಯಂತ್ರ ಕಲಿಕೆ ಮತ್ತು ಐತಿಹಾಸಿಕ ಡೇಟಾ ವಿಶ್ಲೇಷಣೆಯನ್ನು ಬಳಸಿಕೊಂಡು ನಿಖರವಾದ ಇಳುವರಿ ಮುನ್ಸೂಚನೆ.",
+        "Equipment Rental": "ಉಪಕರಣ ಬಾಡಿಗೆ",
+        "Rent farming equipment from nearby farmers and track equipment location in real-time.": "ಹತ್ತಿರದ ರೈತರಿಂದ ಕೃಷಿ ಉಪಕರಣಗಳನ್ನು ಬಾಡಿಗೆಗೆ ಪಡೆಯಿರಿ ಮತ್ತು ನೈಜ ಸಮಯದಲ್ಲಿ ಉಪಕರಣದ ಸ್ಥಳವನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ.",
+        "Disease Detection": "ರೋಗ ಪತ್ತೆ",
+        "AI-powered crop disease identification through photo analysis with treatment recommendations.": "ಚಿಕಿತ್ಸೆಯ ಶಿಫಾರಸುಗಳೊಂದಿಗೆ ಫೋಟೋ ವಿಶ್ಲೇಷಣೆಯ ಮೂಲಕ AI ಚಾಲಿತ ಬೆಳೆ ರೋಗ ಗುರುತಿಸುವಿಕೆ.",
+        "Learning Hub": "ಕಲಿಕಾ ಕೇಂದ್ರ",
+        "Access farming tutorials, expert advice, and agricultural best practices.": "ಕೃಷಿ ಟ್ಯುಟೋರಿಯಲ್‌ಗಳು, ತಜ್ಞರ ಸಲಹೆ ಮತ್ತು ಕೃಷಿ ಉತ್ತಮ ಅಭ್ಯಾಸಗಳನ್ನು ಪ್ರವೇಶಿಸಿ.",
+        "Insurance": "ವಿಮೆ",
+        "Crop insurance management and claims processing with AI damage assessment.": "AI ಹಾನಿ ಮೌಲ್ಯಮಾಪನದೊಂದಿಗೆ ಬೆಳೆ ವಿಮೆ ನಿರ್ವಹಣೆ ಮತ್ತು ಕ್ಲೈಮ್ ಪ್ರಕ್ರಿಯೆ.",
+        "Marketplace": "ಮಾರುಕಟ್ಟೆ",
+        "Buy and sell crops directly with other farmers and buyers at fair market prices.": "ಇತರ ರೈತರು ಮತ್ತು ಖರೀದಿದಾರರೊಂದಿಗೆ ನೇರವಾಗಿ ನ್ಯಾಯಯುತ ಮಾರುಕಟ್ಟೆ ಬೆಲೆಯಲ್ಲಿ ಬೆಳೆಗಳನ್ನು ಖರೀದಿಸಿ ಮತ್ತು ಮಾರಾಟ ಮಾಡಿ.",
+        "Community": "ಸಮುದಾಯ",
+        "Connect with fellow farmers, share experiences, and get expert advice.": "ಸಹ ರೈತರೊಂದಿಗೆ ಸಂಪರ್ಕ ಸಾಧಿಸಿ, ಅನುಭವಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಿ ಮತ್ತು ತಜ್ಞರ ಸಲಹೆ ಪಡೆಯಿರಿ."
+    },
   };
 
    const { t, lang, setLang, supportedLangs } = useTranslation();
@@ -1367,6 +1616,7 @@ export default function FarmingPlatformLanding() {
       <button onClick={() => setLang('en')} className={`text-sm px-2 py-1 rounded ${lang === 'en' ? 'bg-forest-green text-white' : 'text-gray-700'}`}>EN</button>
       <button onClick={() => setLang('hi')} className={`text-sm px-2 py-1 rounded ${lang === 'hi' ? 'bg-forest-green text-white' : 'text-gray-700'}`}>HI</button>
       <button onClick={() => setLang('mr')} className={`text-sm px-2 py-1 rounded ${lang === 'mr' ? 'bg-forest-green text-white' : 'text-gray-700'}`}>MR</button>
+      <button onClick={() => setLang('kn')} className={`text-sm px-2 py-1 rounded ${lang === 'kn' ? 'bg-forest-green text-white' : 'text-gray-700'}`}>KN</button>
     </div>
   );
 
@@ -1380,29 +1630,33 @@ export default function FarmingPlatformLanding() {
   
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {features.map((feature, index) => (
-              <Card
-                key={index}
-                className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden"
-                onClick={() => navigateToPage(feature.page)}
-              >
-                <div
-                  className="absolute inset-0 bg-cover bg-center opacity-25 group-hover:opacity-35 transition-opacity duration-300"
-                  style={{
-                    backgroundImage: `url(${feature.backgroundImage || '/placeholder.svg'})`
-                  }}
-                />
-                <div className="relative z-10">
-                  <CardHeader>
-                    <div className="mb-4 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
-                    <CardTitle className="text-xl font-serif text-forest-green">{ft(feature.titleKey)}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-gray-600 leading-relaxed">{ft(feature.descriptionKey)}</CardDescription>
-                    <Button className="mt-4 w-full bg-forest-green hover:bg-forest-green/90">{t.openFeature} {ft(feature.titleKey)}</Button>
-                  </CardContent>
-                </div>
-              </Card>
-            ))}
+  <Card
+    key={index}
+    // 1. Make the Card a vertical flex container
+    className="group flex flex-col hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden"
+    onClick={() => navigateToPage(feature.page)}
+  >
+    <div
+      className="absolute inset-0 bg-cover bg-center opacity-25 group-hover:opacity-35 transition-opacity duration-300"
+      style={{
+        backgroundImage: `url(${feature.backgroundImage || '/placeholder.svg'})`
+      }}
+    />
+    {/* 2. Add a wrapper that is also a vertical flex container and can grow */}
+    <div className="relative z-10 flex flex-grow flex-col">
+      <CardHeader>
+        <div className="mb-4 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
+        <CardTitle className="text-xl font-serif text-forest-green">{ft(feature.titleKey)}</CardTitle>
+      </CardHeader>
+      {/* 3. Make the CardContent area grow and be a flex container */}
+      <CardContent className="flex flex-grow flex-col">
+        <CardDescription className="text-gray-600 leading-relaxed">{ft(feature.descriptionKey)}</CardDescription>
+        {/* 4. Use `mt-auto` to push the button to the bottom of the card */}
+        <Button className="mt-auto w-full bg-forest-green hover:bg-forest-green/90">{t.openFeature} {ft(feature.titleKey)}</Button>
+      </CardContent>
+    </div>
+  </Card>
+))}
           </div>
         </div>
       </div>
