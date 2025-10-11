@@ -1,0 +1,43 @@
+# OS
+Thumbs.db
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.mypy_cache/
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+ENV/
+.env
+.env.*
+.cache/
+
+tmp/
+logs/
+
+# VS Code / IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Build
+build/
+dist/
+
+# Notebooks outputs
+*.nbconvert.ipynb
+
+# Local data/uploads
+AgriGo/AgriGo/uploads/*
+!AgriGo/AgriGo/uploads/.gitkeep
+
+# Torch / TensorBoard (if any)
+runs/

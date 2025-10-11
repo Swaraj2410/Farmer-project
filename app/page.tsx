@@ -59,6 +59,7 @@ import {
   Sun,
   Cloud
 } from "lucide-react"
+import { API_BASE, getFertilizerOptions, getYieldAndFertilizer, predictDisease } from "@/lib/api"
 
 // Add this section after your imports in page.tsx
 
@@ -2664,28 +2665,7 @@ export default function FarmingPlatformLanding() {
     setDiseaseError(null)
 
     try {
-      const formData = new FormData()
-      formData.append('file', selectedFile)
-
-      const queryParams = new URLSearchParams({
-        approach: selectedApproach
-      })
-      
-      if (selectedApproach === 'keras' && selectedCrop) {
-        queryParams.append('crop', selectedCrop)
-      }
-
-      const response = await fetch(`http://localhost:8000/disease/predict?${queryParams}`, {
-        method: 'POST',
-        body: formData
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
+      const result = await predictDisease(selectedFile, selectedApproach, selectedApproach === 'keras' ? selectedCrop : undefined)
       setDiseaseResult(result)
     } catch (error) {
       console.error('Disease detection error:', error)
@@ -2953,8 +2933,18 @@ export default function FarmingPlatformLanding() {
     };
   })
 
-  const soilTypes = ['Black', 'Clayey', 'Loamy', 'Red', 'Sandy']
-  const cropTypes = ['Barley', 'Cotton', 'Ground Nuts', 'Maize', 'Millets', 'Oil seeds', 'Paddy', 'Pulses', 'Sugarcane', 'Tobacco', 'Wheat']
+  const [soilTypes, setSoilTypes] = React.useState<string[]>(['Black', 'Clayey', 'Loamy', 'Red', 'Sandy'])
+  const [cropTypes, setCropTypes] = React.useState<string[]>(['Barley', 'Cotton', 'Ground Nuts', 'Maize', 'Millets', 'Oil seeds', 'Paddy', 'Pulses', 'Sugarcane', 'Tobacco', 'Wheat'])
+
+  // Load metadata for dropdowns from API (with graceful fallback)
+  React.useEffect(() => {
+    getFertilizerOptions()
+      .then((meta) => {
+        if (Array.isArray(meta.soil_types) && meta.soil_types.length) setSoilTypes(meta.soil_types)
+        if (Array.isArray(meta.crop_types) && meta.crop_types.length) setCropTypes(meta.crop_types)
+      })
+      .catch(() => {})
+  }, [])
 
   // Save yieldFormData to localStorage whenever it changes
   React.useEffect(() => {
@@ -3025,20 +3015,7 @@ export default function FarmingPlatformLanding() {
         phosphorous: parseFloat(yieldFormData.phosphorous)
       }
 
-      const response = await fetch('http://localhost:8000/yield-and-fertilizer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
+      const result = await getYieldAndFertilizer(payload)
       setYieldResult(result)
       setShowYieldForm(false)
     } catch (error) {

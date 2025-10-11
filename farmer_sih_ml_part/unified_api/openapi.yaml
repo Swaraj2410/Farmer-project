@@ -1,0 +1,313 @@
+openapi: 3.1.0
+info:
+  title: Unified Agri API
+  version: 1.0.0
+  description: Unified endpoints combining Plant-Disease-Detection (disease classification + info) and AgriGo (crop recommendation and fertilizer recommendation).
+  contact:
+    name: Agri API
+    email: support@example.com
+
+paths:
+  /disease/predict:
+    post:
+      summary: Detect plant disease from an image
+      tags:
+        - disease
+      operationId: predict_disease_disease_predict_post
+      parameters:
+        - name: approach
+          in: query
+          required: false
+          description: "'torch' (default, 39 classes) or 'keras' (per-crop AgriGo)"
+          schema:
+            type: string
+            pattern: ^(torch|keras)$
+            default: torch
+        - name: crop
+          in: query
+          required: false
+          description: "Required for approach=keras. One of: apple, cherry, corn, grape, patato, peach, pepper, strawberry, tomato"
+          schema:
+            anyOf:
+              - type: string
+              - type: 'null'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_predict_disease_disease_predict_post'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiseasePrediction'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /yield-and-fertilizer:
+    post:
+      summary: Recommend best crop (proxy for yield) and fertilizer
+      tags:
+        - yield
+        - fertilizer
+      operationId: yield_and_fertilizer_yield_and_fertilizer_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/YieldFertilizerRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YieldFertilizerResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /metadata/fertilizer-options:
+    get:
+      summary: Get fertilizer options metadata
+      operationId: fertilizer_options_metadata_fertilizer_options_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  soil_types:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Black", "Clayey", "Loamy", "Red", "Sandy"]
+                  crop_types:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Barley", "Cotton", "Ground Nuts", "Maize", "Millets", "Oil seeds", "Paddy", "Pulses", "Sugarcane", "Tobacco", "Wheat"]
+                  fertilizer_classes:
+                    type: array
+                    items:
+                      type: string
+                    example: ["10-26-26", "14-35-14", "17-17-17", "20-20", "28-28", "DAP", "Urea"]
+
+  /health:
+    get:
+      summary: Health check
+      tags:
+        - ops
+      operationId: health_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+
+components:
+  schemas:
+    DiseasePrediction:
+      type: object
+      required:
+        - disease_index
+        - disease_name
+        - confidence
+      properties:
+        disease_index:
+          type: integer
+          minimum: 0
+          exclusiveMaximum: 39
+          title: Disease Index
+        disease_name:
+          type: string
+          title: Disease Name
+        confidence:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+          description: Top-1 softmax probability
+          title: Confidence
+        description:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Description
+        prevention_steps:
+          anyOf:
+            - type: string
+            - type: 'null'
+          description: Possible steps to prevent/control
+          title: Prevention Steps
+        image_url:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Image Url
+        supplement:
+          anyOf:
+            - type: object
+              additionalProperties: true
+            - type: 'null'
+          description: 'Recommended supplement info: name, image, buy_link'
+          title: Supplement
+          example:
+            name: "Fungicide X"
+            image: "https://..."
+            buy_link: "https://..."
+
+    YieldFertilizerRequest:
+      type: object
+      required:
+        - N
+        - P
+        - K
+        - temperature
+        - humidity
+        - ph
+        - rainfall
+        - fert_temperature
+        - fert_humidity
+        - moisture
+        - soil_type
+        - crop_type
+        - nitrogen
+        - potassium
+        - phosphorous
+      properties:
+        N:
+          type: number
+          description: Nitrogen content in soil
+          title: N
+        P:
+          type: number
+          description: Phosphorus content in soil
+          title: P
+        K:
+          type: number
+          description: Potassium content in soil
+          title: K
+        temperature:
+          type: number
+          description: Temperature in °C
+          title: Temperature
+        humidity:
+          type: number
+          description: Relative humidity in %
+          title: Humidity
+        ph:
+          type: number
+          description: Soil pH
+          title: Ph
+        rainfall:
+          type: number
+          description: Rainfall in mm
+          title: Rainfall
+        fert_temperature:
+          type: number
+          description: Field temperature in °C
+          title: Fert Temperature
+        fert_humidity:
+          type: number
+          description: Field humidity in %
+          title: Fert Humidity
+        moisture:
+          type: number
+          description: Soil moisture in %
+          title: Moisture
+        soil_type:
+          type: string
+          description: 'One of: Black, Clayey, Loamy, Red, Sandy'
+          title: Soil Type
+          enum: ["Black", "Clayey", "Loamy", "Red", "Sandy"]
+        crop_type:
+          type: string
+          description: 'One of: Barley, Cotton, Ground Nuts, Maize, Millets, Oil seeds, Paddy, Pulses, Sugarcane, Tobacco, Wheat'
+          title: Crop Type
+          enum: ["Barley", "Cotton", "Ground Nuts", "Maize", "Millets", "Oil seeds", "Paddy", "Pulses", "Sugarcane", "Tobacco", "Wheat"]
+        nitrogen:
+          type: number
+          description: Nitrogen value
+          title: Nitrogen
+        potassium:
+          type: number
+          description: Potassium value
+          title: Potassium
+        phosphorous:
+          type: number
+          description: Phosphorous value
+          title: Phosphorous
+
+    YieldFertilizerResponse:
+      type: object
+      required:
+        - recommended_crop
+        - fertilizer
+      properties:
+        recommended_crop:
+          type: string
+          title: Recommended Crop
+        fertilizer:
+          type: string
+          title: Fertilizer
+          enum: ["10-26-26", "14-35-14", "17-17-17", "20-20", "28-28", "DAP", "Urea"]
+
+    Body_predict_disease_disease_predict_post:
+      type: object
+      required:
+        - file
+      properties:
+        file:
+          type: string
+          format: binary
+          description: Leaf image file
+          title: File
+
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          title: Detail
+
+    ValidationError:
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      properties:
+        loc:
+          type: array
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type

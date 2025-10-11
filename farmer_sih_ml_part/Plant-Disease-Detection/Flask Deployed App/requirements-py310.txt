@@ -1,0 +1,19 @@
+# Windows/Python 3.10 compatible deps for local dev
+click==8.1.7
+Flask==2.2.5
+itsdangerous==2.1.2
+Jinja2==3.1.4
+MarkupSafe==2.1.5
+Werkzeug==2.3.7
+numpy==1.23.5
+pandas==1.5.3
+Pillow==10.2.0
+python-dateutil==2.9.0.post0
+pytz==2024.1
+six==1.16.0
+typing-extensions==4.10.0
+# Use CPU-only PyTorch wheels for Windows/Py3.10
+# Will be resolved via --index-url when installing
+torch==2.2.2
+torchvision==0.17.2
+# gunicorn omitted for Windows local run
