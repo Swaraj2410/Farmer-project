@@ -2395,26 +2395,26 @@ const postTranslations: Record<string, {
   )
 
   const renderInsurance = () => (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-serif font-bold text-forest-green mb-4">{t.insuranceTitle}</h1>
-          <p className="text-xl text-gray-600">{t.insuranceDescription}</p>
+          <h1 className="text-3xl font-serif font-bold text-gray-800 mb-2">{t.insuranceTitle}</h1>
+          <p className="text-lg text-gray-700 mb-4">{t.insuranceDescription}</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 mb-12">
-          <Card>
+          <Card className="bg-gray-100 border border-gray-300">
             <CardHeader>
-              <CardTitle className="text-2xl text-forest-green flex items-center">
-                <Shield className="h-6 w-6 mr-2" />
+              <CardTitle className="text-xl text-gray-800 flex items-center">
+                <Shield className="h-5 w-5 mr-2 text-gray-600" />
                 {t.whatIsCropInsurance}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 mb-4">{t.insuranceBenefitText}</p>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <h4 className="font-semibold text-orange-800 mb-2">{t.coverageIncludes}</h4>
-                <ul className="space-y-2 text-orange-700">
+              <p className="text-gray-800 mb-4">{t.insuranceBenefitText}</p>
+              <div className="p-4 rounded-lg border border-gray-200 bg-white">
+                <h4 className="font-semibold text-gray-700 mb-2">{t.coverageIncludes}</h4>
+                <ul className="space-y-1 text-gray-700">
                   <li>{t.coverage1}</li>
                   <li>{t.coverage2}</li>
                   <li>{t.coverage3}</li>
@@ -2424,23 +2424,26 @@ const postTranslations: Record<string, {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gray-100 border border-gray-300">
             <CardHeader>
-              <CardTitle className="text-2xl text-forest-green">{t.govtSchemes}</CardTitle>
+              <CardTitle className="text-xl text-gray-800">{t.govtSchemes}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <h4 className="font-semibold text-blue-800">PM-Kisan Scheme</h4>
-                  <p className="text-gray-600 text-sm">Direct income support of ₹6000 per year</p>
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-1">PM-Kisan Scheme</h4>
+                  <p className="text-gray-700 text-sm mb-1">Direct income support of ₹6000 per year.</p>
+                  <a href="https://pmkisan.gov.in/homenew.aspx" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">Official Website</a> | <a href="https://pmkisan.gov.in/RegistrationFormupdated.aspx" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">Registration</a>
                 </div>
-                <div className="border-l-4 border-green-500 pl-4">
-                  <h4 className="font-semibold text-green-800">Fasal Bima Yojana</h4>
-                  <p className="text-gray-600 text-sm">Comprehensive crop insurance coverage</p>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-1">Pradhan Mantri Fasal Bima Yojana (PMFBY)</h4>
+                  <p className="text-gray-700 text-sm mb-1">Comprehensive crop insurance coverage.</p>
+                  <a href="https://pmfby.gov.in/" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">Official Website</a> | <a href="https://pmfby.gov.in/selfRegistration" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">Self Registration</a>
                 </div>
-                <div className="border-l-4 border-purple-500 pl-4">
-                  <h4 className="font-semibold text-purple-800">Equipment Subsidies</h4>
-                  <p className="text-gray-600 text-sm">Up to 50% subsidy on farming equipment</p>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-1">Sub-Mission on Agricultural Mechanization (SMAM)</h4>
+                  <p className="text-gray-700 text-sm mb-1">Up to 50% subsidy on farming equipment.</p>
+                  <a href="https://www.myscheme.gov.in/schemes/smam" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">Scheme Details</a>
                 </div>
               </div>
             </CardContent>
