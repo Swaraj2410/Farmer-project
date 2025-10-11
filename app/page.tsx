@@ -5,16 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { VoiceControl } from "@/components/VoiceControl";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -23,7 +14,6 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   CloudRain,
   Sprout,
-  BarChart3,
   Droplets,
   Truck,
   Menu,
@@ -32,7 +22,6 @@ import {
   ArrowRight,
   Leaf,
   Mic,
-  Home,
   LogOut,
   Camera,
   BookOpen,
@@ -57,10 +46,13 @@ import {
   CloudSun,
   Satellite,
   Sun,
-  Cloud
+  Cloud,
+  BarChart3,
+  Home
 } from "lucide-react"
 import { API_BASE, getFertilizerOptions, getYieldAndFertilizer, predictDisease } from "@/lib/api"
 import { ModeToggle } from "@/components/mode-toggle"
+import { VoiceControl } from "@/components/VoiceControl"
 
 // Add this section after your imports in page.tsx
 
@@ -1729,12 +1721,14 @@ const postTranslations: Record<string, {
       titleKey: "Marketplace",
       descriptionKey: "Buy and sell crops directly with other farmers and buyers at fair market prices.",
       page: "marketplace",
+      backgroundImage: "/farmers-market.jpg",
     },
     {
       icon: <Users className="h-8 w-8 text-sky-blue" />,
       titleKey: "Community",
       descriptionKey: "Connect with fellow farmers, share experiences, and get expert advice.",
       page: "community",
+      backgroundImage: "/farmer-comm.jpeg",
     },
   ];
 
@@ -2127,7 +2121,8 @@ const postTranslations: Record<string, {
                     quantity: "750",
                     location: "Uttar Pradesh, India",
                     rating: 4.6,
-                    image: "/placeholder.svg?height=200&width=300",
+                    // image: "/placeholder.svg?height=200&width=300",
+                    image: "/corn.jpg",
                     trending: true,
                   },
                   {
@@ -2137,7 +2132,8 @@ const postTranslations: Record<string, {
                     quantity: "200",
                     location: "Haryana, India",
                     rating: 4.9,
-                    image: "/placeholder.svg?height=200&width=300",
+                    // image: "/placeholder.svg?height=200&width=300",
+                    image: "/rice.jpg",
                     trending: false,
                   },
                 ].map((crop, index) => (
@@ -2687,7 +2683,8 @@ const postTranslations: Record<string, {
               duration: "2h 30m",
               students: 1250,
               rating: 4.8,
-              image: "/placeholder.svg?height=200&width=300",
+              image: "/learning/modern_irrigation.jpg",
+              url: "https://iisdt.in/product/certificate-in-drip-sprinkler-irrigation-technology/?add-to-cart=21768&srsltid=AfmBOooav-Ai9UuSZumfpzDF9ASYb2BKwOhbOEL2kGqyFJq12afO_-Tv",
               category: "Water Management",
             },
             {
@@ -2696,7 +2693,8 @@ const postTranslations: Record<string, {
               duration: "1h 45m",
               students: 890,
               rating: 4.9,
-              image: "/placeholder.svg?height=200&width=300",
+              image: "/learning/pest_control.jpg",
+              url: "https://farmonaut.com/blogs/organic-pest-control-7-proven-tips-for-healthier-crops",
               category: "Pest Management",
             },
             {
@@ -2705,7 +2703,8 @@ const postTranslations: Record<string, {
               duration: "3h 15m",
               students: 2100,
               rating: 4.7,
-              image: "/placeholder.svg?height=200&width=300",
+              image: "/learning/soil_health.jpg",
+              url: "https://onlinecourses.nptel.ac.in/noc24_ag12/preview",
               category: "Soil Science",
             },
             {
@@ -2714,36 +2713,35 @@ const postTranslations: Record<string, {
               duration: "2h 10m",
               students: 1560,
               rating: 4.6,
-              image: "/placeholder.svg?height=200&width=300",
+              image: "/learning/crop_rotation.jpeg",
+              url: "https://rodaleinstitute.org/why-organic/organic-farming-practices/crop-rotations/",
               category: "Crop Management",
             },
           ].map((course, index) => (
             <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="relative">
-                <img src={course.image || "/placeholder.svg"} alt={course.title} className="w-full h-48 object-cover" />
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <Button size="sm" className="bg-white text-black hover:bg-gray-100">
-                    <Play className="h-4 w-4 mr-2" />
-                    {t.watchPreview}
-                  </Button>
-                </div>
-                <div className="absolute top-2 left-2 bg-forest-green text-white px-2 py-1 rounded text-xs">
-                  {course.category}
-                </div>
-              </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-lg mb-2">{course.title}</h3>
-                <p className="text-gray-600 text-sm mb-2">{t.by} {course.instructor}</p>
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <span>{course.duration}</span>
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                    {course.rating}
+              <a href={course.url} target="_blank" rel="noopener noreferrer" className="block">
+                <div className="relative">
+                  <img src={course.image || "/placeholder.svg"} alt={course.title} className="w-full h-48 object-cover" />
+                  <div className="absolute top-2 left-2 bg-forest-green text-white px-2 py-1 rounded text-xs">
+                    {course.category}
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-4">{course.students} {t.studentsEnrolled}</p>
-                <Button className="w-full bg-forest-green hover:bg-forest-green/90">{t.startLearning}</Button>
-              </CardContent>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-lg mb-2">{course.title}</h3>
+                  <p className="text-gray-600 text-sm mb-2">{t.by} {course.instructor}</p>
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                    <span>{course.duration}</span>
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
+                      {course.rating}
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">{course.students} {t.studentsEnrolled}</p>
+                  <Button asChild className="w-full bg-forest-green hover:bg-forest-green/90">
+                    <a href={course.url} target="_blank" rel="noopener noreferrer">{t.startLearning}</a>
+                  </Button>
+                </CardContent>
+              </a>
             </Card>
           ))}
         </div>
@@ -3042,16 +3040,16 @@ const postTranslations: Record<string, {
   )
 
   const renderWeatherForecast = () => (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-serif font-bold text-forest-green mb-4">{t.weatherForecastTitle}</h1>
-          <p className="text-xl text-gray-600">{t.weatherForecastDescription}</p>
+          <p className="text-xl text-muted-foreground">{t.weatherForecastDescription}</p>
         </div>
 
         {/* Current Weather Summary */}
         {weather && (
-          <Card className="mb-8 bg-gradient-to-r from-blue-50 to-sky-50">
+          <Card className="mb-8 weather-gradient">
             <CardHeader>
               <CardTitle className="text-2xl text-forest-green flex items-center">
                 <Sun className="h-6 w-6 mr-2" />
@@ -3060,7 +3058,7 @@ const postTranslations: Record<string, {
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-4 gap-6">
-                <div className="text-center p-4 bg-white rounded-lg">
+                <div className="text-center p-4 bg-card rounded-lg">
                   <div className="text-3xl font-bold text-blue-600">{weather.temperature ?? "--"}°C</div>
                   <div className="text-gray-600">Temperature</div>
                   <div className="text-sm text-gray-500 mt-1">
@@ -3070,7 +3068,7 @@ const postTranslations: Record<string, {
                      (weather.temperature ?? 0) > 15 ? "Mild" : "Cool"}
                   </div>
                 </div>
-                <div className="text-center p-4 bg-white rounded-lg">
+                <div className="text-center p-4 bg-card rounded-lg">
                   <div className="text-3xl font-bold text-green-600">{weather.relative_humidity ?? "--"}%</div>
                   <div className="text-gray-600">Humidity</div>
                   <div className="text-sm text-gray-500 mt-1">
@@ -3079,12 +3077,12 @@ const postTranslations: Record<string, {
                      (weather.relative_humidity ?? 0) > 40 ? "Moderate" : "Dry"}
                   </div>
                 </div>
-                <div className="text-center p-4 bg-white rounded-lg">
+                <div className="text-center p-4 bg-card rounded-lg">
                   <div className="text-3xl font-bold text-purple-600">{weather.precipitation || 0}mm</div>
                   <div className="text-gray-600">Precipitation</div>
                   <div className="text-sm text-gray-500 mt-1">Last Hour</div>
                 </div>
-                <div className="text-center p-4 bg-white rounded-lg">
+                <div className="text-center p-4 bg-card rounded-lg">
                   <div className="text-3xl font-bold text-orange-600">{weather.wind_speed ?? "--"}m/s</div>
                   <div className="text-gray-600">Wind Speed</div>
                   <div className="text-sm text-gray-500 mt-1">
@@ -3107,7 +3105,7 @@ const postTranslations: Record<string, {
           </CardHeader>
           <CardContent>
             {forecastLoading ? (
-              <div className="text-center py-8 text-gray-600">Loading weather forecast...</div>
+              <div className="text-center py-8 text-muted-foreground">Loading weather forecast...</div>
             ) : forecastError ? (
               <div className="text-center py-8 text-red-600">{forecastError}</div>
             ) : forecast.length > 0 ? (
@@ -3116,27 +3114,27 @@ const postTranslations: Record<string, {
                   const weatherInfo = getWeatherIcon(day.weather_code)
                   const today = i === 0
                   return (
-                    <div key={i} className={`p-4 rounded-lg border ${today ? 'bg-green-50 border-green-200' : 'bg-white'}`}>
+                    <div key={i} className={`p-4 rounded-lg border ${today ? 'bg-green-50 border-green-200' : 'bg-card'}`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                           <div className="text-lg font-semibold w-16">
                             {today ? 'Today' : day.day}
                           </div>
                           <weatherInfo.icon className="h-8 w-8 text-blue-500" />
-                          <div className="text-gray-600">{weatherInfo.desc}</div>
+                          <div className="text-muted-foreground">{weatherInfo.desc}</div>
                         </div>
                         <div className="flex items-center space-x-8">
                           <div className="text-center">
                             <div className="text-2xl font-bold">{day.temp_max}°</div>
-                            <div className="text-sm text-gray-500">{day.temp_min}°</div>
+                            <div className="text-sm text-muted-foreground">{day.temp_min}°</div>
                           </div>
                           <div className="text-center">
                             <div className="text-blue-600 font-semibold">{day.precipitation}mm</div>
-                            <div className="text-xs text-gray-500">Rain</div>
+                            <div className="text-xs text-muted-foreground">Rain</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-gray-600">{day.wind_speed}m/s</div>
-                            <div className="text-xs text-gray-500">Wind</div>
+                            <div className="text-muted-foreground">{day.wind_speed}m/s</div>
+                            <div className="text-xs text-muted-foreground">Wind</div>
                           </div>
                         </div>
                       </div>
@@ -3145,7 +3143,7 @@ const postTranslations: Record<string, {
                 })}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-600">No forecast data available</div>
+              <div className="text-center py-8 text-muted-foreground">No forecast data available</div>
             )}
           </CardContent>
         </Card>
@@ -3210,7 +3208,7 @@ const postTranslations: Record<string, {
                   return recommendations.map((rec, idx) => (
                     <div key={idx} className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
                       <span className="text-2xl">{rec.icon}</span>
-                      <p className="text-sm text-gray-700">{rec.text}</p>
+                      <p className="text-sm text-muted-foreground">{rec.text}</p>
                     </div>
                   ))
                 })()}
