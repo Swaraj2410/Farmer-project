@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -215,12 +215,33 @@ const translations = {
     marketplaceDescription: "Buy and sell crops at fair market prices",
     buyCrops: "Buy Crops",
     sellCrops: "Sell Crops",
+    marketPrices: "Market Prices",
     trending: "Trending",
     by: "by",
     kgAvailable: "kg available",
     buyNow: "Buy Now",
     listYourCrops: "List Your Crops",
     sellYourHarvest: "Sell your harvest directly to buyers",
+    // Market Prices
+    state: "State",
+    district: "District",
+    market: "Market",
+    commodity: "Commodity",
+    variety: "Variety",
+    grade: "Grade",
+    arrivalDate: "Arrival Date",
+    minPrice: "Min Price",
+    maxPrice: "Max Price",
+    modalPrice: "Modal Price",
+    showColumns: "Show Columns",
+    searchCommodity: "Search commodity...",
+    sortBy: "Sort by",
+    ascending: "Ascending",
+    descending: "Descending",
+    dataSourceNote: "Data fetched today from Government of India",
+    totalRecords: "Total Records",
+    showRecords: "Show records",
+    loadMore: "Load More",
     cropName: "Crop Name",
     quantityKg: "Quantity (kg)",
     pricePerKg: "Price per kg (₹)",
@@ -397,12 +418,33 @@ const translations = {
     marketplaceDescription: "उचित बाजार मूल्य पर फसलें खरीदें और बेचें",
     buyCrops: "फसलें खरीदें",
     sellCrops: "फसलें बेचें",
+    marketPrices: "बाजार भाव",
     trending: "ट्रेंडिंग",
     by: "द्वारा",
     kgAvailable: "किलो उपलब्ध",
     buyNow: "अभी खरीदें",
     listYourCrops: "अपनी फसलें सूचीबद्ध करें",
     sellYourHarvest: "अपनी फसल सीधे खरीदारों को बेचें",
+    // Market Prices
+    state: "राज्य",
+    district: "जिला",
+    market: "बाजार",
+    commodity: "वस्तु",
+    variety: "किस्म",
+    grade: "ग्रेड",
+    arrivalDate: "आगमन तिथि",
+    minPrice: "न्यूनतम मूल्य",
+    maxPrice: "अधिकतम मूल्य",
+    modalPrice: "मोडल मूल्य",
+    showColumns: "कॉलम दिखाएं",
+    searchCommodity: "वस्तु खोजें...",
+    sortBy: "क्रमबद्ध करें",
+    ascending: "आरोही",
+    descending: "अवरोही",
+    dataSourceNote: "आज भारत सरकार से डेटा लिया गया",
+    totalRecords: "कुल रिकॉर्ड",
+    showRecords: "रिकॉर्ड दिखाएं",
+    loadMore: "और लोड करें",
     cropName: "फसल का नाम",
     quantityKg: "मात्रा (किलो)",
     pricePerKg: "मूल्य प्रति किलो (₹)",
@@ -769,12 +811,33 @@ const translations = {
     marketplaceDescription: "ನ್ಯಾಯವಾದ ಬೆಲೆಗೆ ಬೆಳೆ ಖರೀದಿ/ಮಾರಾಟ",
     buyCrops: "ಬೆಳೆ ಖರೀದಿ",
     sellCrops: "ಬೆಳೆ ಮಾರಾಟ",
+    marketPrices: "ಮಾರುಕಟ್ಟೆ ದರಗಳು",
     trending: "ಜೋರು",
     by: "ಗೆ",
     kgAvailable: "ಕೆಜಿ ಲಭ್ಯ",
     buyNow: "ಈಗ ಖರೀದಿ",
     listYourCrops: "ನಿಮ್ಮ ಬೆಳೆಗಳನ್ನು ಪಟ್ಟಿ ಮಾಡಿ",
     sellYourHarvest: "ನಿಮ್ಮ ಕೊಯ್ಲು ನೇರವಾಗಿ ಖರೀದಿದಾರರಿಗೆ ಮಾರಾಟ ಮಾಡಿ",
+    // Market Prices
+    state: "ರಾಜ್ಯ",
+    district: "ಜಿಲ್ಲೆ",
+    market: "ಮಾರುಕಟ್ಟೆ",
+    commodity: "ಸರಕು",
+    variety: "ಪ್ರಕಾರ",
+    grade: "ಗ್ರೇಡ್",
+    arrivalDate: "ಆಗಮನ ದಿನಾಂಕ",
+    minPrice: "ಕನಿಷ್ಠ ಬೆಲೆ",
+    maxPrice: "ಗರಿಷ್ಠ ಬೆಲೆ",
+    modalPrice: "ಮೋಡಲ್ ಬೆಲೆ",
+    showColumns: "ಕಾಲಮ್ಗಳನ್ನು ತೋರಿಸು",
+    searchCommodity: "ಸರಕು ಹುಡುಕಿ...",
+    sortBy: "ಕ್ರಮವಿಧಾನ",
+    ascending: "ಆರೋಹಣ",
+    descending: "ಅವರೋಹಣ",
+    dataSourceNote: "ಇಂದು ಭಾರತ ಸರ್ಕಾರದಿಂದ ಡೇಟಾ ಪಡೆಯಲಾಗಿದೆ",
+    totalRecords: "ಒಟ್ಟು ದಾಖಲೆಗಳು",
+    showRecords: "ದಾಖಲೆಗಳನ್ನು ತೋರಿಸು",
+    loadMore: "ಹೆಚ್ಚು ಲೋಡ್ ಮಾಡಿ",
     cropName: "ಬೆಳೆಯ ಹೆಸರು",
     quantityKg: "ಪ್ರಮಾಣ (ಕೆಜಿ)",
     pricePerKg: "ಪ್ರತಿ ಕೆಜಿ ಬೆಲೆ (₹)",
@@ -1103,6 +1166,28 @@ const postTranslations: Record<string, {
   const [entrySoilType, setEntrySoilType] = useState<string>("")
   const [entryNotes, setEntryNotes] = useState<string>("")
 
+  // Market Prices state
+  const [marketData, setMarketData] = useState<any[]>([])
+  const [filteredMarketData, setFilteredMarketData] = useState<any[]>([])
+  const [marketSearchTerm, setMarketSearchTerm] = useState("")
+  const [sortField, setSortField] = useState("Commodity")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
+  const [visibleColumns, setVisibleColumns] = useState({
+    State: true,
+    District: true,
+    Market: true,
+    Commodity: true,
+    Variety: true,
+    Grade: false,
+    Arrival_Date: true,
+    Min_x0020_Price: true,
+    Max_x0020_Price: true,
+    Modal_x0020_Price: true
+  })
+  const [isLoadingMarketData, setIsLoadingMarketData] = useState(false)
+  const [displayLimit, setDisplayLimit] = useState(50)
+  const [marketDataError, setMarketDataError] = useState<string | null>(null)
+
   const addHealthEntry = () => {
     const hasAny = [entryMoisture, entryPH, entryTemp, entryNDVI, entrySoilType, entryNotes]
       .some((v) => (typeof v === "string" ? v.trim() !== "" : v !== undefined))
@@ -1151,6 +1236,96 @@ const postTranslations: Record<string, {
     })
     setHealthLogs((prev) => [...samples, ...prev])
   }
+
+  // Market Data Loading Functions
+  const loadMarketData = async () => {
+    setIsLoadingMarketData(true)
+    setMarketDataError(null)
+    try {
+      const response = await fetch('/commodities.csv')
+      if (!response.ok) {
+        throw new Error('Failed to fetch market data')
+      }
+      const csvText = await response.text()
+      const lines = csvText.split('\n')
+      const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
+      
+      const data = lines.slice(1)
+        .filter(line => line.trim())
+        .map(line => {
+          const values: string[] = []
+          let current = ''
+          let inQuotes = false
+          
+          for (let char of line) {
+            if (char === '"') {
+              inQuotes = !inQuotes
+            } else if (char === ',' && !inQuotes) {
+              values.push(current.trim())
+              current = ''
+            } else {
+              current += char
+            }
+          }
+          values.push(current.trim())
+          
+          const row: any = {}
+          headers.forEach((header, index) => {
+            row[header] = values[index]?.replace(/"/g, '') || ''
+          })
+          return row
+        })
+      
+      setMarketData(data)
+      setFilteredMarketData(data)
+    } catch (error) {
+      console.error('Error loading market data:', error)
+      setMarketDataError('Failed to load market data. Please try refreshing the page.')
+      setMarketData([])
+      setFilteredMarketData([])
+    } finally {
+      setIsLoadingMarketData(false)
+    }
+  }
+
+  // Filter and sort market data
+  useEffect(() => {
+    let filtered = marketData.filter(item => 
+      item.Commodity?.toLowerCase().includes(marketSearchTerm.toLowerCase()) ||
+      item.State?.toLowerCase().includes(marketSearchTerm.toLowerCase()) ||
+      item.District?.toLowerCase().includes(marketSearchTerm.toLowerCase()) ||
+      item.Market?.toLowerCase().includes(marketSearchTerm.toLowerCase())
+    )
+
+    filtered.sort((a, b) => {
+      let aVal = a[sortField] || ''
+      let bVal = b[sortField] || ''
+      
+      // Handle numeric fields
+      if (sortField.includes('Price')) {
+        aVal = parseFloat(aVal) || 0
+        bVal = parseFloat(bVal) || 0
+      }
+      
+      if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase()
+        bVal = bVal.toLowerCase()
+      }
+      
+      if (sortDirection === 'asc') {
+        return aVal > bVal ? 1 : -1
+      } else {
+        return aVal < bVal ? 1 : -1
+      }
+    })
+
+    setFilteredMarketData(filtered)
+  }, [marketData, marketSearchTerm, sortField, sortDirection])
+
+  // Load market data on component mount
+  useEffect(() => {
+    loadMarketData()
+  }, [])
 
   // --- Weather & location for Yield Prediction ---
   type WeatherData = {
@@ -1881,9 +2056,10 @@ const postTranslations: Record<string, {
           </div>
   
           <Tabs defaultValue="buy" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="buy">{t.buyCrops}</TabsTrigger>
               <TabsTrigger value="sell">{t.sellCrops}</TabsTrigger>
+              <TabsTrigger value="prices">{t.marketPrices}</TabsTrigger>
             </TabsList>
   
             <TabsContent value="buy">
@@ -2013,6 +2189,240 @@ const postTranslations: Record<string, {
                     </div>
                   </div>
                   <Button className="w-full bg-forest-green hover:bg-forest-green/90">{t.listCropForSale}</Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="prices">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl text-forest-green">{t.marketPrices}</CardTitle>
+                  <CardDescription>Live commodity prices from mandis across India</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* Controls */}
+                  <div className="mb-6 space-y-4">
+                    <div className="flex flex-wrap gap-4 items-center">
+                      <div className="flex-1 min-w-[200px]">
+                        <Input
+                          placeholder={t.searchCommodity}
+                          value={marketSearchTerm}
+                          onChange={(e) => setMarketSearchTerm(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Select value={sortField} onValueChange={setSortField}>
+                          <SelectTrigger className="w-[130px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Commodity">{t.commodity}</SelectItem>
+                            <SelectItem value="State">{t.state}</SelectItem>
+                            <SelectItem value="District">{t.district}</SelectItem>
+                            <SelectItem value="Modal_x0020_Price">{t.modalPrice}</SelectItem>
+                            <SelectItem value="Max_x0020_Price">{t.maxPrice}</SelectItem>
+                            <SelectItem value="Min_x0020_Price">{t.minPrice}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSortDirection(sortDirection === "asc" ? "desc" : "asc")}
+                        >
+                          {sortDirection === "asc" ? t.ascending : t.descending}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setMarketSearchTerm("")
+                            setSortField("Commodity")
+                            setSortDirection("asc")
+                          }}
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Column Visibility Controls */}
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <h4 className="font-medium mb-2">{t.showColumns}:</h4>
+                      <div className="flex flex-wrap gap-3">
+                        {Object.entries(visibleColumns).map(([column, visible]) => (
+                          <label key={column} className="flex items-center space-x-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={visible}
+                              onChange={(e) => 
+                                setVisibleColumns(prev => ({...prev, [column]: e.target.checked}))
+                              }
+                              className="rounded border-gray-300"
+                            />
+                            <span>
+                              {column === 'State' && t.state}
+                              {column === 'District' && t.district}
+                              {column === 'Market' && t.market}
+                              {column === 'Commodity' && t.commodity}
+                              {column === 'Variety' && t.variety}
+                              {column === 'Grade' && t.grade}
+                              {column === 'Arrival_Date' && t.arrivalDate}
+                              {column === 'Min_x0020_Price' && t.minPrice}
+                              {column === 'Max_x0020_Price' && t.maxPrice}
+                              {column === 'Modal_x0020_Price' && t.modalPrice}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Data Table */}
+                  {isLoadingMarketData ? (
+                    <div className="text-center py-8">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-forest-green"></div>
+                      <p className="mt-2">Loading market data...</p>
+                    </div>
+                  ) : marketDataError ? (
+                    <div className="text-center py-8">
+                      <div className="text-red-600 mb-4">
+                        <p className="font-medium">Error loading market data</p>
+                        <p className="text-sm">{marketDataError}</p>
+                      </div>
+                      <Button 
+                        onClick={loadMarketData}
+                        className="bg-forest-green hover:bg-forest-green/90"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Retry
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mb-4 flex justify-between items-center">
+                        <div className="text-sm text-gray-600">
+                          {t.totalRecords}: {filteredMarketData.length}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600">{t.showRecords}:</span>
+                          <Select 
+                            value={displayLimit.toString()} 
+                            onValueChange={(value) => setDisplayLimit(parseInt(value))}
+                          >
+                            <SelectTrigger className="w-20">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="25">25</SelectItem>
+                              <SelectItem value="50">50</SelectItem>
+                              <SelectItem value="100">100</SelectItem>
+                              <SelectItem value="200">200</SelectItem>
+                              <SelectItem value="500">500</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="overflow-x-auto border rounded-lg">
+                        <div className="min-w-[800px]">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                {visibleColumns.State && <TableHead>{t.state}</TableHead>}
+                                {visibleColumns.District && <TableHead>{t.district}</TableHead>}
+                                {visibleColumns.Market && <TableHead>{t.market}</TableHead>}
+                                {visibleColumns.Commodity && <TableHead>{t.commodity}</TableHead>}
+                                {visibleColumns.Variety && <TableHead>{t.variety}</TableHead>}
+                                {visibleColumns.Grade && <TableHead>{t.grade}</TableHead>}
+                                {visibleColumns.Arrival_Date && <TableHead>{t.arrivalDate}</TableHead>}
+                                {visibleColumns.Min_x0020_Price && <TableHead>{t.minPrice} (₹)</TableHead>}
+                                {visibleColumns.Max_x0020_Price && <TableHead>{t.maxPrice} (₹)</TableHead>}
+                                {visibleColumns.Modal_x0020_Price && <TableHead>{t.modalPrice} (₹)</TableHead>}
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {filteredMarketData.slice(0, displayLimit).map((item, index) => (
+                                <TableRow key={index} className="hover:bg-gray-50">
+                                  {visibleColumns.State && <TableCell>{item.State}</TableCell>}
+                                  {visibleColumns.District && <TableCell>{item.District}</TableCell>}
+                                  {visibleColumns.Market && <TableCell>{item.Market}</TableCell>}
+                                  {visibleColumns.Commodity && (
+                                    <TableCell className="font-medium">
+                                      {marketSearchTerm && item.Commodity?.toLowerCase().includes(marketSearchTerm.toLowerCase()) ? (
+                                        <span className="bg-yellow-200 px-1 rounded">
+                                          {item.Commodity}
+                                        </span>
+                                      ) : (
+                                        item.Commodity
+                                      )}
+                                    </TableCell>
+                                  )}
+                                  {visibleColumns.Variety && <TableCell>{item.Variety}</TableCell>}
+                                  {visibleColumns.Grade && <TableCell>{item.Grade}</TableCell>}
+                                  {visibleColumns.Arrival_Date && <TableCell>{item.Arrival_Date}</TableCell>}
+                                  {visibleColumns.Min_x0020_Price && (
+                                    <TableCell className="text-green-600 font-medium">
+                                      {item.Min_x0020_Price ? `₹${item.Min_x0020_Price}` : '-'}
+                                    </TableCell>
+                                  )}
+                                  {visibleColumns.Max_x0020_Price && (
+                                    <TableCell className="text-red-600 font-medium">
+                                      {item.Max_x0020_Price ? `₹${item.Max_x0020_Price}` : '-'}
+                                    </TableCell>
+                                  )}
+                                  {visibleColumns.Modal_x0020_Price && (
+                                    <TableCell className="text-blue-600 font-bold">
+                                      {item.Modal_x0020_Price ? `₹${item.Modal_x0020_Price}` : '-'}
+                                    </TableCell>
+                                  )}
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                      {filteredMarketData.length > displayLimit && (
+                        <div className="mt-4 text-center">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setDisplayLimit(prev => prev + 50)}
+                            className="mr-2"
+                          >
+                            {t.loadMore}
+                          </Button>
+                          <span className="text-sm text-gray-600">
+                            Showing {Math.min(displayLimit, filteredMarketData.length)} of {filteredMarketData.length} records
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Data Source Attribution */}
+                  <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center text-sm text-blue-800">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      <span className="font-medium">{t.dataSourceNote}</span>
+                    </div>
+                    <div className="mt-1 text-xs text-blue-600">
+                      Source: <a 
+                        href="https://www.data.gov.in/resource/current-daily-price-various-commodities-various-markets-mandi" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="underline hover:text-blue-800"
+                      >
+                        Government of India - Current Daily Price of Various Commodities
+                      </a>
+                    </div>
+                    <div className="text-xs text-blue-600 mt-1">
+                      Fetched on: {new Date().toLocaleDateString('en-IN', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        weekday: 'long'
+                      })}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
