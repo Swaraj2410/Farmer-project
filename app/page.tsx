@@ -60,6 +60,7 @@ import {
   Cloud
 } from "lucide-react"
 import { API_BASE, getFertilizerOptions, getYieldAndFertilizer, predictDisease } from "@/lib/api"
+import { ModeToggle } from "@/components/mode-toggle"
 
 // Add this section after your imports in page.tsx
 
@@ -621,12 +622,33 @@ const translations = {
     marketplaceDescription: "योग्य बाजारभावात पिके खरेदी आणि विक्री करा",
     buyCrops: "पिके खरेदी करा",
     sellCrops: "पिके विक्री करा",
+  marketPrices: "बाजार भाव",
     trending: "ट्रेंडिंग",
     by: "द्वारे",
     kgAvailable: "किलो उपलब्ध",
     buyNow: "आता खरेदी करा",
-    listYourCrops: "तुमची पिके सूचीबद्ध करा",
+  listYourCrops: "तुमची पिके सूचीबद्ध करा",
     sellYourHarvest: "तुमचे पीक थेट खरेदीदारांना विका",
+  // Market Prices
+  state: "राज्य",
+  district: "जिल्हा",
+  market: "बाजार",
+  commodity: "वस्तू",
+  variety: "प्रकार",
+  grade: "ग्रेड",
+  arrivalDate: "आगमन तारीख",
+  minPrice: "किमान किंमत",
+  maxPrice: "कमाल किंमत",
+  modalPrice: "मोडल किंमत",
+  showColumns: "स्तंभ दाखवा",
+  searchCommodity: "वस्तू शोधा...",
+  sortBy: "क्रम लावा",
+  ascending: "आरोही",
+  descending: "अवरोही",
+  dataSourceNote: "आज भारत सरकारकडून डेटा आणला आहे",
+  totalRecords: "एकूण नोंदी",
+  showRecords: "नोंदी दाखवा",
+  loadMore: "अजून दाखवा",
     cropName: "पिकाचे नाव",
     quantityKg: "प्रमाण (किलो)",
     pricePerKg: "प्रति किलो किंमत (₹)",
@@ -949,18 +971,24 @@ function getBrowserLanguage() {
 }
 
 // --- Translation hook: returns t, lang, setLang, supportedLangs ---
+type Lang = keyof typeof translations;
+
 function useTranslation() {
-  const [lang, setLang] = useState(() => {
-    // Check localStorage first, then fall back to browser language
+  // Initialize language in a type-safe way
+  const [lang, setLang] = useState<Lang>(() => {
+    const fallback: Lang = "en";
     if (typeof window !== "undefined") {
-      const savedLang = localStorage.getItem("farmtech-language");
-      if (savedLang) return savedLang;
+      const saved = localStorage.getItem("farmtech-language");
+      if (saved && (Object.keys(translations) as Lang[]).includes(saved as Lang)) {
+        return saved as Lang;
+      }
     }
-    return getBrowserLanguage();
+    const browser = getBrowserLanguage();
+    return ((Object.keys(translations) as Lang[]).includes(browser as Lang) ? (browser as Lang) : fallback);
   });
   
-  const supportedLangs = Object.keys(translations);
-  const currentLang = supportedLangs.includes(lang) ? lang : "en";
+  const supportedLangs = Object.keys(translations) as Lang[];
+  const currentLang: Lang = supportedLangs.includes(lang) ? lang : "en";
   
   // Save language to localStorage whenever it changes
   React.useEffect(() => {
@@ -1354,6 +1382,8 @@ const postTranslations: Record<string, {
   const [forecastLoading, setForecastLoading] = useState<boolean>(false)
   const [forecastError, setForecastError] = useState<string | null>(null)
   const [currentTime, setCurrentTime] = useState<string>("")
+  // Avoid hydration mismatch for time/date by rendering after mount
+  const [mounted, setMounted] = useState(false)
 
   // Helper function to map weather codes to icons and descriptions
   const getWeatherIcon = (weatherCode: number) => {
@@ -1461,6 +1491,11 @@ const postTranslations: Record<string, {
     return () => clearInterval(timeInterval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn])
+
+  // Mark mounted on client to safely render client-only dynamic values
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Compute averages from logs
   const avg = React.useMemo(() => {
@@ -1733,7 +1768,7 @@ const postTranslations: Record<string, {
 
    const { t, lang, setLang, supportedLangs } = useTranslation();
   type FeatureKey = keyof typeof featureTranslations["en"]
-  // USE lang from useTranslation(), NOT language
+  // Helper for feature translations
   const ft = (key: string) => featureTranslations[lang][key as FeatureKey]
 
   // useEffect hooks to persist data to localStorage
@@ -2415,12 +2450,18 @@ const postTranslations: Record<string, {
                       </a>
                     </div>
                     <div className="text-xs text-blue-600 mt-1">
-                      Fetched on: {new Date().toLocaleDateString('en-IN', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric',
-                        weekday: 'long'
-                      })}
+                      {mounted ? (
+                        <span>
+                          Fetched on: {new Date().toLocaleDateString('en-IN', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric',
+                            weekday: 'long'
+                          })}
+                        </span>
+                      ) : (
+                        <span suppressHydrationWarning>Fetched on: --</span>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -3020,22 +3061,22 @@ const postTranslations: Record<string, {
             <CardContent>
               <div className="grid md:grid-cols-4 gap-6">
                 <div className="text-center p-4 bg-white rounded-lg">
-                  <div className="text-3xl font-bold text-blue-600">{weather.temperature}°C</div>
+                  <div className="text-3xl font-bold text-blue-600">{weather.temperature ?? "--"}°C</div>
                   <div className="text-gray-600">Temperature</div>
                   <div className="text-sm text-gray-500 mt-1">
-                    {weather.temperature > 35 ? "Very Hot" : 
-                     weather.temperature > 30 ? "Hot" :
-                     weather.temperature > 25 ? "Warm" :
-                     weather.temperature > 15 ? "Mild" : "Cool"}
+                    {(weather.temperature ?? 0) > 35 ? "Very Hot" : 
+                     (weather.temperature ?? 0) > 30 ? "Hot" :
+                     (weather.temperature ?? 0) > 25 ? "Warm" :
+                     (weather.temperature ?? 0) > 15 ? "Mild" : "Cool"}
                   </div>
                 </div>
                 <div className="text-center p-4 bg-white rounded-lg">
-                  <div className="text-3xl font-bold text-green-600">{weather.relative_humidity}%</div>
+                  <div className="text-3xl font-bold text-green-600">{weather.relative_humidity ?? "--"}%</div>
                   <div className="text-gray-600">Humidity</div>
                   <div className="text-sm text-gray-500 mt-1">
-                    {weather.relative_humidity > 80 ? "Very Humid" : 
-                     weather.relative_humidity > 60 ? "Humid" :
-                     weather.relative_humidity > 40 ? "Moderate" : "Dry"}
+                    {(weather.relative_humidity ?? 0) > 80 ? "Very Humid" : 
+                     (weather.relative_humidity ?? 0) > 60 ? "Humid" :
+                     (weather.relative_humidity ?? 0) > 40 ? "Moderate" : "Dry"}
                   </div>
                 </div>
                 <div className="text-center p-4 bg-white rounded-lg">
@@ -3044,11 +3085,11 @@ const postTranslations: Record<string, {
                   <div className="text-sm text-gray-500 mt-1">Last Hour</div>
                 </div>
                 <div className="text-center p-4 bg-white rounded-lg">
-                  <div className="text-3xl font-bold text-orange-600">{weather.wind_speed}m/s</div>
+                  <div className="text-3xl font-bold text-orange-600">{weather.wind_speed ?? "--"}m/s</div>
                   <div className="text-gray-600">Wind Speed</div>
                   <div className="text-sm text-gray-500 mt-1">
-                    {weather.wind_speed > 10 ? "Strong" : 
-                     weather.wind_speed > 5 ? "Moderate" : "Light"}
+                    {(weather.wind_speed ?? 0) > 10 ? "Strong" : 
+                     (weather.wind_speed ?? 0) > 5 ? "Moderate" : "Light"}
                   </div>
                 </div>
               </div>
@@ -4054,10 +4095,14 @@ const postTranslations: Record<string, {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            {/* Time on far left */}
+            {/* Time on far left - render only after mount to avoid hydration mismatch */}
             <div className="hidden md:flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs font-medium text-gray-700 mr-4">
               <Calendar className="h-3 w-3" />
-              <span>{currentTime}</span>
+              {mounted ? (
+                <span>{currentTime}</span>
+              ) : (
+                <span suppressHydrationWarning>{"--:--"}</span>
+              )}
             </div>
             <Leaf className="h-8 w-8 text-forest-green" />
             <span className="text-2xl font-serif font-bold text-forest-green">{t.appName}</span>
@@ -4115,6 +4160,7 @@ const postTranslations: Record<string, {
 
           <div className="flex items-center space-x-4">
             <LanguageSwitcher />
+            <ModeToggle />
             <Button
               variant="outline"
               onClick={handleLogout}
@@ -4176,7 +4222,7 @@ const postTranslations: Record<string, {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+  <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -4194,6 +4240,7 @@ const postTranslations: Record<string, {
 
             <div className="hidden md:flex items-center space-x-4">
               <LanguageSwitcher />
+              <ModeToggle />
               <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
                 <DialogTrigger asChild>
                   <Button

@@ -4,6 +4,15 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Brand palette variables (separate text vs background for contrast) */
+  --brand-forest-bg: #2d5016;
+  --brand-forest-text: #2d5016;
+  --brand-soil-bg: #8b4513;
+  --brand-soil-text: #8b4513;
+  --brand-sky-bg: #87ceeb;
+  --brand-sky-text: #087ec3;
+  --brand-soft-gold-bg: #f4e4bc;
+  --brand-soft-gold-text: #8a6d3b;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -40,6 +49,15 @@
 }
 
 .dark {
+  /* Adjust brand palette for dark surfaces */
+  --brand-forest-bg: #166534; /* green-700 */
+  --brand-forest-text: #86efac; /* green-300 */
+  --brand-soil-bg: #7c2d12; /* deep warm */
+  --brand-soil-text: #f4b77a; /* warm light */
+  --brand-sky-bg: #0c4a6e; /* sky-900 */
+  --brand-sky-text: #7dd3fc; /* sky-300 */
+  --brand-soft-gold-bg: #6b5d3b; /* muted gold */
+  --brand-soft-gold-text: #fde68a; /* amber-200 */
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.145 0 0);
@@ -126,42 +144,46 @@
   }
 }
 
-/* Added custom farming-themed color classes */
-.bg-forest-green {
-  background-color: #2d5016;
-}
+/* Custom farming-themed color classes using variables for theme-aware colors */
+.bg-forest-green { background-color: var(--brand-forest-bg); }
+.bg-soil-brown { background-color: var(--brand-soil-bg); }
+.bg-sky-blue { background-color: var(--brand-sky-bg); }
+.bg-soft-gold { background-color: var(--brand-soft-gold-bg); }
 
-.bg-soil-brown {
-  background-color: #8b4513;
-}
+.text-forest-green { color: var(--brand-forest-text); }
+.text-soil-brown { color: var(--brand-soil-text); }
+.text-sky-blue { color: var(--brand-sky-text); }
+.text-soft-gold { color: var(--brand-soft-gold-text); }
 
-.bg-sky-blue {
-  background-color: #87ceeb;
-}
+.border-forest-green { border-color: var(--brand-forest-bg); }
 
-.bg-soft-gold {
-  background-color: #f4e4bc;
-}
+/* Improve common gray text readability on dark backgrounds without touching markup */
+.dark .text-gray-900 { color: var(--foreground) !important; }
+.dark .text-gray-800 { color: var(--foreground) !important; }
+.dark .text-gray-700 { color: var(--muted-foreground) !important; }
+.dark .text-gray-600 { color: var(--muted-foreground) !important; }
+.dark .text-gray-500 { color: var(--muted-foreground) !important; }
+.dark .text-gray-400 { color: var(--muted-foreground) !important; }
 
-.text-forest-green {
-  color: #2d5016;
-}
+/* Dark-mode remaps for commonly used light backgrounds/borders */
+.dark .bg-white { background-color: var(--card) !important; }
+.dark .bg-white\/95 { background-color: var(--background) !important; background-color: color-mix(in oklab, var(--background) 95%, transparent) !important; }
+.dark .bg-gray-50 { background-color: var(--muted) !important; }
+.dark .bg-gray-100 { background-color: var(--muted) !important; }
+.dark .bg-gray-200 { background-color: var(--input) !important; }
+.dark .bg-green-50 { background-color: color-mix(in oklab, var(--primary) 12%, var(--background)) !important; }
+.dark .border-green-200 { border-color: color-mix(in oklab, var(--primary) 30%, var(--border)) !important; }
+.dark .bg-blue-50 { background-color: var(--accent) !important; }
+.dark .border-gray-100 { border-color: var(--border) !important; }
+.dark .border-gray-200 { border-color: var(--border) !important; }
+.dark .border-gray-300 { border-color: var(--border) !important; }
+.dark .hover\:bg-gray-50:hover { background-color: var(--accent) !important; }
+.dark .hover\:bg-gray-100:hover { background-color: var(--accent) !important; }
 
-.text-soil-brown {
-  color: #8b4513;
-}
-
-.text-sky-blue {
-  color: #87ceeb;
-}
-
-.text-soft-gold {
-  color: #f4e4bc;
-}
-
-.border-forest-green {
-  border-color: #2d5016;
-}
+/* Inputs/buttons relying on white/black pairs */
+.dark .text-black { color: var(--foreground) !important; }
+.dark .bg-black\/40 { background-color: color-mix(in oklab, var(--foreground) 40%, transparent) !important; }
+.dark .bg-black\/50 { background-color: color-mix(in oklab, var(--foreground) 50%, transparent) !important; }
 
 /* Added parallax and smooth scroll utilities */
 .parallax {

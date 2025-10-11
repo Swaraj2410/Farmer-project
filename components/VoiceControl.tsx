@@ -13,14 +13,15 @@ type VoiceCommand = {
 type VoiceControlProps = {
   onCommand: (action: string) => void;
   commands: VoiceCommand[]; // Allow passing commands as props for flexibility
-  language: "en" | "hi" | "mr"; // To support multilingual commands
+  language: "en" | "hi" | "mr" | "kn"; // To support multilingual commands
 };
 
 // Language mapping for the SpeechRecognition API
-const langCodeMap = {
+const langCodeMap: Record<"en" | "hi" | "mr" | "kn", string> = {
   en: "en-US",
   hi: "hi-IN",
   mr: "mr-IN",
+  kn: "kn-IN",
 };
 
 export const VoiceControl: React.FC<VoiceControlProps> = ({ onCommand, commands, language }) => {
@@ -63,7 +64,8 @@ export const VoiceControl: React.FC<VoiceControlProps> = ({ onCommand, commands,
         return;
       }
       
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  // Access vendor-prefixed SpeechRecognition safely
+  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.lang = langCodeMap[language];
       recognitionRef.current.continuous = false; // Listen for a single command
