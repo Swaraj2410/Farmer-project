@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import ReactMarkdown from "react-markdown"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import {
-  CloudRain,
+
   Sprout,
   Droplets,
   Truck,
@@ -48,12 +49,18 @@ import {
   Satellite,
   Sun,
   Cloud,
+  CloudRain,
   BarChart3,
   Home
 } from "lucide-react"
-import { API_BASE, getFertilizerOptions, getYieldAndFertilizer, predictDisease } from "@/lib/api"
+import { API_BASE, getFertilizerOptions, getYieldAndFertilizer } from "@/lib/api"
 import { ModeToggle } from "@/components/mode-toggle"
 import { VoiceControl } from "@/components/VoiceControl"
+import { DiseaseDetection } from "@/components/features/DiseaseDetection"
+import { Marketplace } from "@/components/features/Marketplace"
+import { WeatherForecast } from "@/components/features/WeatherForecast"
+import { EquipmentRental } from "@/components/features/EquipmentRental"
+import { YieldPrediction } from "@/components/features/YieldPrediction"
 
 // Add this section after your imports in page.tsx
 
@@ -224,9 +231,9 @@ const translations = {
     variety: "Variety",
     grade: "Grade",
     arrivalDate: "Arrival Date",
-    minPrice: "Min Price",
-    maxPrice: "Max Price",
-    modalPrice: "Modal Price",
+    minPrice: "Min Price (₹/q)",
+    maxPrice: "Max Price (₹/q)",
+    modalPrice: "Modal Price (₹/q)",
     showColumns: "Show Columns",
     searchCommodity: "Search commodity...",
     sortBy: "Sort by",
@@ -427,9 +434,9 @@ const translations = {
     variety: "किस्म",
     grade: "ग्रेड",
     arrivalDate: "आगमन तिथि",
-    minPrice: "न्यूनतम मूल्य",
-    maxPrice: "अधिकतम मूल्य",
-    modalPrice: "मोडल मूल्य",
+    minPrice: "न्यूनतम मूल्य (₹/q)",
+    maxPrice: "अधिकतम मूल्य (₹/q)",
+    modalPrice: "मोडल मूल्य (₹/q)",
     showColumns: "कॉलम दिखाएं",
     searchCommodity: "वस्तु खोजें...",
     sortBy: "क्रमबद्ध करें",
@@ -615,33 +622,33 @@ const translations = {
     marketplaceDescription: "योग्य बाजारभावात पिके खरेदी आणि विक्री करा",
     buyCrops: "पिके खरेदी करा",
     sellCrops: "पिके विक्री करा",
-  marketPrices: "बाजार भाव",
+    marketPrices: "बाजार भाव",
     trending: "ट्रेंडिंग",
     by: "द्वारे",
     kgAvailable: "किलो उपलब्ध",
     buyNow: "आता खरेदी करा",
-  listYourCrops: "तुमची पिके सूचीबद्ध करा",
+    listYourCrops: "तुमची पिके सूचीबद्ध करा",
     sellYourHarvest: "तुमचे पीक थेट खरेदीदारांना विका",
-  // Market Prices
-  state: "राज्य",
-  district: "जिल्हा",
-  market: "बाजार",
-  commodity: "वस्तू",
-  variety: "प्रकार",
-  grade: "ग्रेड",
-  arrivalDate: "आगमन तारीख",
-  minPrice: "किमान किंमत",
-  maxPrice: "कमाल किंमत",
-  modalPrice: "मोडल किंमत",
-  showColumns: "स्तंभ दाखवा",
-  searchCommodity: "वस्तू शोधा...",
-  sortBy: "क्रम लावा",
-  ascending: "आरोही",
-  descending: "अवरोही",
-  dataSourceNote: "आज भारत सरकारकडून डेटा आणला आहे",
-  totalRecords: "एकूण नोंदी",
-  showRecords: "नोंदी दाखवा",
-  loadMore: "अजून दाखवा",
+    // Market Prices
+    state: "राज्य",
+    district: "जिल्हा",
+    market: "बाजार",
+    commodity: "वस्तू",
+    variety: "प्रकार",
+    grade: "ग्रेड",
+    arrivalDate: "आगमन तारीख",
+    minPrice: "किमान किंमत (₹/q)",
+    maxPrice: "कमाल किंमत (₹/q)",
+    modalPrice: "मोडल किंमत (₹/q)",
+    showColumns: "स्तंभ दाखवा",
+    searchCommodity: "वस्तू शोधा...",
+    sortBy: "क्रम लावा",
+    ascending: "आरोही",
+    descending: "अवरोही",
+    dataSourceNote: "आज भारत सरकारकडून डेटा आणला आहे",
+    totalRecords: "एकूण नोंदी",
+    showRecords: "नोंदी दाखवा",
+    loadMore: "अजून दाखवा",
     cropName: "पिकाचे नाव",
     quantityKg: "प्रमाण (किलो)",
     pricePerKg: "प्रति किलो किंमत (₹)",
@@ -946,7 +953,7 @@ const translations = {
     betterPlanningDesc: "ಕೊಯ್ಲು ಮತ್ತು ಶೇಖರಣೆಯ ಮುಂಚಿತ ಯೋಜನೆ",
     maximizeRevenue: "ಆದಾಯ ಹೆಚ್ಚಿಸಿ",
     maximizeRevenueDesc: "ಉತ್ತಮ ಬೆಲೆಗಳಿಗಾಗಿ ಮಾರುಕಟ್ಟೆ ಮಾರಾಟದ ಸಮಯ ನಿರ್ಧಾರಿಸಿ",
-  }, 
+  },
 } as const;
 
 
@@ -979,17 +986,17 @@ function useTranslation() {
     const browser = getBrowserLanguage();
     return ((Object.keys(translations) as Lang[]).includes(browser as Lang) ? (browser as Lang) : fallback);
   });
-  
+
   const supportedLangs = Object.keys(translations) as Lang[];
   const currentLang: Lang = supportedLangs.includes(lang) ? lang : "en";
-  
+
   // Save language to localStorage whenever it changes
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("farmtech-language", lang);
     }
   }, [lang]);
-  
+
   return {
     t: translations[currentLang],
     lang,
@@ -1002,12 +1009,14 @@ export default function FarmingPlatformLanding() {
   // Initialize state with localStorage values
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("farmtech-isLoggedIn") === "true";
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const storedIsLoggedIn = localStorage.getItem("farmtech-isLoggedIn") === "true"
+    if (storedIsLoggedIn) {
+      setIsLoggedIn(true)
     }
-    return false;
-  })
+  }, [])
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("farmtech-currentPage") || "dashboard";
@@ -1027,6 +1036,7 @@ export default function FarmingPlatformLanding() {
     }
     return "";
   })
+  const [isLoading, setIsLoading] = useState(false)
 
   type CommunityPost = {
     author: string;
@@ -1036,65 +1046,65 @@ export default function FarmingPlatformLanding() {
     comments: number;
     image: string | null; // Can be a URL string or null
   };
-  
+
   // Initial posts data moved into a constant
   const initialPosts: CommunityPost[] = [
-      {
-        author: "Rajesh Kumar",
-        time: "2 hours ago",
-        content:
-          "Just harvested my wheat crop! Yield was 20% higher than last year thanks to the new irrigation techniques I learned here. Thank you community!",
-        likes: 24,
-        comments: 8,
-        image: "/community/post-1.png",
-      },
-      {
-        author: "Priya Sharma",
-        time: "5 hours ago",
-        content:
-          "Has anyone tried organic pest control methods for tomatoes? Looking for natural alternatives to chemical pesticides.",
-        likes: 15,
-        comments: 12,
-        image: null,
-      },
-      {
-        author: "Dr. Amit Verma (Expert)",
-        time: "1 day ago",
-        content:
-          "Weather update: Heavy rains expected next week in North India. Farmers should prepare drainage systems and protect crops from waterlogging.",
-        likes: 45,
-        comments: 18,
-        image: "/community/post-3.jpeg",
-      },
+    {
+      author: "Rajesh Kumar",
+      time: "2 hours ago",
+      content:
+        "Just harvested my wheat crop! Yield was 20% higher than last year thanks to the new irrigation techniques I learned here. Thank you community!",
+      likes: 24,
+      comments: 8,
+      image: "/community/post-1.png",
+    },
+    {
+      author: "Priya Sharma",
+      time: "5 hours ago",
+      content:
+        "Has anyone tried organic pest control methods for tomatoes? Looking for natural alternatives to chemical pesticides.",
+      likes: 15,
+      comments: 12,
+      image: null,
+    },
+    {
+      author: "Dr. Amit Verma (Expert)",
+      time: "1 day ago",
+      content:
+        "Weather update: Heavy rains expected next week in North India. Farmers should prepare drainage systems and protect crops from waterlogging.",
+      likes: 45,
+      comments: 18,
+      image: "/community/post-3.jpeg",
+    },
   ];
 
   // State to manage all community posts
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(initialPosts);
-  
+
   // State for the 'New Post' dialog
   const [isNewPostDialogOpen, setIsNewPostDialogOpen] = useState(false);
   const [newPostContent, setNewPostContent] = useState("");
   const [newPostImage, setNewPostImage] = useState<File | null>(null);
   const [newPostImagePreview, setNewPostImagePreview] = useState<string | null>(null);
- 
 
 
-const [postLang, setPostLang] = useState<Record<number, "en" | "hi" | "mr" | "kn">>({});
 
-// Helper to cycle per-post language: en → hi → mr → kn → en
-const cycleLang = (l: "en" | "hi" | "mr" | "kn"): "en" | "hi" | "mr" | "kn" => {
+  const [postLang, setPostLang] = useState<Record<number, "en" | "hi" | "mr" | "kn">>({});
+
+  // Helper to cycle per-post language: en → hi → mr → kn → en
+  const cycleLang = (l: "en" | "hi" | "mr" | "kn"): "en" | "hi" | "mr" | "kn" => {
     if (l === "en") return "hi";
     if (l === "hi") return "mr";
     if (l === "mr") return "kn"; // Added this line for Kannada
     return "en"; // kn → en
-};
+  };
 
   // --- Hardcoded translations for current community posts (author + content) ---
-const postTranslations: Record<string, {
+  const postTranslations: Record<string, {
     hi: { author: string; content: string }
     mr: { author: string; content: string }
     kn: { author: string; content: string } // Added Kannada type
-}> = {
+  }> = {
     "Rajesh Kumar": {
       hi: {
         author: "राजेश कुमार",
@@ -1152,8 +1162,8 @@ const postTranslations: Record<string, {
       },
       // ------------------------------------
     },
-}
-  
+  }
+
 
   // --- Farm Health Monitoring state ---
   type HealthLog = {
@@ -1187,166 +1197,7 @@ const postTranslations: Record<string, {
   const [entrySoilType, setEntrySoilType] = useState<string>("")
   const [entryNotes, setEntryNotes] = useState<string>("")
 
-  // Market Prices state
-  const [marketData, setMarketData] = useState<any[]>([])
-  const [filteredMarketData, setFilteredMarketData] = useState<any[]>([])
-  const [marketSearchTerm, setMarketSearchTerm] = useState("")
-  const [sortField, setSortField] = useState("Commodity")
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
-  const [visibleColumns, setVisibleColumns] = useState({
-    State: true,
-    District: true,
-    Market: true,
-    Commodity: true,
-    Variety: true,
-    Grade: false,
-    Arrival_Date: true,
-    Min_x0020_Price: true,
-    Max_x0020_Price: true,
-    Modal_x0020_Price: true
-  })
-  const [isLoadingMarketData, setIsLoadingMarketData] = useState(false)
-  const [displayLimit, setDisplayLimit] = useState(50)
-  const [marketDataError, setMarketDataError] = useState<string | null>(null)
 
-  const addHealthEntry = () => {
-    const hasAny = [entryMoisture, entryPH, entryTemp, entryNDVI, entrySoilType, entryNotes]
-      .some((v) => (typeof v === "string" ? v.trim() !== "" : v !== undefined))
-    if (!hasAny) {
-      // lazy import to avoid circulars; using existing toast hook API
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Add at least one measurement", description: "Enter moisture, pH, temperature, NDVI, soil type or a note." })
-      )
-      return
-    }
-    const newLog: HealthLog = {
-      id: Math.random().toString(36).slice(2),
-      timestamp: new Date(entryDate).toISOString(),
-      soilMoisture: entryMoisture ? Number(entryMoisture) : undefined,
-      soilPH: entryPH ? Number(entryPH) : undefined,
-      temperature: entryTemp ? Number(entryTemp) : undefined,
-      ndvi: entryNDVI ? Number(entryNDVI) : undefined,
-      soilType: entrySoilType || undefined,
-      notes: entryNotes || undefined,
-    }
-    setHealthLogs((prev) => [newLog, ...prev])
-    // reset a few fields, keep date for rapid entry
-    setEntryMoisture("")
-    setEntryPH("")
-    setEntryTemp("")
-    setEntryNDVI("")
-    setEntrySoilType("")
-    setEntryNotes("")
-  }
-
-  const addSampleData = () => {
-    const now = Date.now()
-    const samples: HealthLog[] = [0, 1, 2].map((i) => {
-      const ts = new Date(now - i * 1000 * 60 * 60 * 24).toISOString()
-      const soilTypes = ["Loam", "Sandy", "Clay", "Black", "Silt"]
-      return {
-        id: Math.random().toString(36).slice(2),
-        timestamp: ts,
-        soilMoisture: Math.round((60 + Math.random() * 25) * 10) / 10, // 60-85%
-        soilPH: Math.round((6 + Math.random() * 1.5) * 10) / 10, // 6.0-7.5
-        temperature: Math.round((24 + Math.random() * 6) * 10) / 10, // 24-30 C
-        ndvi: Math.round((0.65 + Math.random() * 0.25) * 100) / 100, // 0.65-0.9
-        soilType: soilTypes[Math.floor(Math.random() * soilTypes.length)],
-        notes: "Sample reading",
-      }
-    })
-    setHealthLogs((prev) => [...samples, ...prev])
-  }
-
-  // Market Data Loading Functions
-  const loadMarketData = async () => {
-    setIsLoadingMarketData(true)
-    setMarketDataError(null)
-    try {
-      const response = await fetch('/commodities.csv')
-      if (!response.ok) {
-        throw new Error('Failed to fetch market data')
-      }
-      const csvText = await response.text()
-      const lines = csvText.split('\n')
-      const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
-      
-      const data = lines.slice(1)
-        .filter(line => line.trim())
-        .map(line => {
-          const values: string[] = []
-          let current = ''
-          let inQuotes = false
-          
-          for (let char of line) {
-            if (char === '"') {
-              inQuotes = !inQuotes
-            } else if (char === ',' && !inQuotes) {
-              values.push(current.trim())
-              current = ''
-            } else {
-              current += char
-            }
-          }
-          values.push(current.trim())
-          
-          const row: any = {}
-          headers.forEach((header, index) => {
-            row[header] = values[index]?.replace(/"/g, '') || ''
-          })
-          return row
-        })
-      
-      setMarketData(data)
-      setFilteredMarketData(data)
-    } catch (error) {
-      console.error('Error loading market data:', error)
-      setMarketDataError('Failed to load market data. Please try refreshing the page.')
-      setMarketData([])
-      setFilteredMarketData([])
-    } finally {
-      setIsLoadingMarketData(false)
-    }
-  }
-
-  // Filter and sort market data
-  useEffect(() => {
-    let filtered = marketData.filter(item => 
-      item.Commodity?.toLowerCase().includes(marketSearchTerm.toLowerCase()) ||
-      item.State?.toLowerCase().includes(marketSearchTerm.toLowerCase()) ||
-      item.District?.toLowerCase().includes(marketSearchTerm.toLowerCase()) ||
-      item.Market?.toLowerCase().includes(marketSearchTerm.toLowerCase())
-    )
-
-    filtered.sort((a, b) => {
-      let aVal = a[sortField] || ''
-      let bVal = b[sortField] || ''
-      
-      // Handle numeric fields
-      if (sortField.includes('Price')) {
-        aVal = parseFloat(aVal) || 0
-        bVal = parseFloat(bVal) || 0
-      }
-      
-      if (typeof aVal === 'string') {
-        aVal = aVal.toLowerCase()
-        bVal = bVal.toLowerCase()
-      }
-      
-      if (sortDirection === 'asc') {
-        return aVal > bVal ? 1 : -1
-      } else {
-        return aVal < bVal ? 1 : -1
-      }
-    })
-
-    setFilteredMarketData(filtered)
-  }, [marketData, marketSearchTerm, sortField, sortDirection])
-
-  // Load market data on component mount
-  useEffect(() => {
-    loadMarketData()
-  }, [])
 
   // --- Weather & location for Yield Prediction ---
   type WeatherData = {
@@ -1357,38 +1208,18 @@ const postTranslations: Record<string, {
     time?: string
   }
 
-  type ForecastDay = {
-    date: string
-    day: string
-    temp_max: number
-    temp_min: number
-    precipitation: number
-    weather_code: number
-    wind_speed: number
-  }
+
 
   const LOCATION = { lat: 18.589028, lon: 73.927389, dms: "18°35'20.5\"N 73°55'38.6\"E" } // precise DMS
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [weatherLoading, setWeatherLoading] = useState<boolean>(false)
   const [weatherError, setWeatherError] = useState<string | null>(null)
-  const [forecast, setForecast] = useState<ForecastDay[]>([])
-  const [forecastLoading, setForecastLoading] = useState<boolean>(false)
-  const [forecastError, setForecastError] = useState<string | null>(null)
+
   const [currentTime, setCurrentTime] = useState<string>("")
   // Avoid hydration mismatch for time/date by rendering after mount
   const [mounted, setMounted] = useState(false)
 
-  // Helper function to map weather codes to icons and descriptions
-  const getWeatherIcon = (weatherCode: number) => {
-    if (weatherCode === 0) return { icon: Sun, desc: 'Clear Sky' }
-    if (weatherCode <= 3) return { icon: CloudSun, desc: 'Partly Cloudy' }
-    if (weatherCode <= 48) return { icon: Cloud, desc: 'Cloudy' }
-    if (weatherCode <= 67) return { icon: CloudRain, desc: 'Rainy' }
-    if (weatherCode <= 77) return { icon: CloudRain, desc: 'Snow' }
-    if (weatherCode <= 82) return { icon: CloudRain, desc: 'Showers' }
-    if (weatherCode <= 99) return { icon: CloudRain, desc: 'Thunderstorm' }
-    return { icon: Sun, desc: 'Clear' }
-  }
+
 
   async function fetchWeather() {
     try {
@@ -1413,36 +1244,7 @@ const postTranslations: Record<string, {
     }
   }
 
-  async function fetchWeatherForecast() {
-    try {
-      setForecastError(null)
-      setForecastLoading(true)
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${LOCATION.lat}&longitude=${LOCATION.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code,wind_speed_10m_max&timezone=auto&forecast_days=7`
-      const res = await fetch(url)
-      const data = await res.json()
-      
-      if (data?.daily) {
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-        const forecastData: ForecastDay[] = data.daily.time.map((date: string, index: number) => {
-          const dateObj = new Date(date)
-          return {
-            date,
-            day: days[dateObj.getDay()],
-            temp_max: Math.round(data.daily.temperature_2m_max[index]),
-            temp_min: Math.round(data.daily.temperature_2m_min[index]),
-            precipitation: Math.round(data.daily.precipitation_sum[index] * 10) / 10,
-            weather_code: data.daily.weather_code[index],
-            wind_speed: Math.round(data.daily.wind_speed_10m_max[index])
-          }
-        })
-        setForecast(forecastData)
-      }
-    } catch (e: any) {
-      setForecastError("Unable to fetch weather forecast.")
-    } finally {
-      setForecastLoading(false)
-    }
-  }
+
 
   // Fetch weather when entering the yield page
   React.useEffect(() => {
@@ -1452,21 +1254,15 @@ const postTranslations: Record<string, {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, currentPage])
 
-  // Fetch weather forecast when entering the weather page
-  React.useEffect(() => {
-    if (isLoggedIn && currentPage === "weather") {
-      fetchWeatherForecast()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, currentPage])
+
 
   // Update current time every second and fetch weather data when logged in
   React.useEffect(() => {
     const updateTime = () => {
       const now = new Date()
-      setCurrentTime(now.toLocaleTimeString('en-US', { 
-        hour12: true, 
-        hour: '2-digit', 
+      setCurrentTime(now.toLocaleTimeString('en-US', {
+        hour12: true,
+        hour: '2-digit',
         minute: '2-digit',
         second: '2-digit'
       }))
@@ -1475,10 +1271,9 @@ const postTranslations: Record<string, {
     updateTime()
     const timeInterval = setInterval(updateTime, 1000)
 
-    // Fetch current weather and forecast when logged in
+    // Fetch current weather when logged in
     if (isLoggedIn) {
       fetchWeather()
-      fetchWeatherForecast()
     }
 
     return () => clearInterval(timeInterval)
@@ -1515,94 +1310,73 @@ const postTranslations: Record<string, {
     }
   }, [healthLogs])
 
-  // Simple client-only "model" combining weather + logs into a yield estimate
-  function computePredictedYield(): { value: number; details: string[] } {
-    let yieldTpa = 3.8 // base tons/acre
-    const details: string[] = []
 
-    // Weather adjustments
-    if (weather?.temperature !== undefined) {
-      if (weather.temperature >= 20 && weather.temperature <= 30) {
-        yieldTpa += 0.2
-        details.push(`Favorable temperature (${weather.temperature}°C) +0.2`)
-      } else if (weather.temperature >= 35 || weather.temperature <= 10) {
-        yieldTpa -= 0.3
-        details.push(`Stress temperature (${weather.temperature}°C) -0.3`)
-      }
-    }
-    if (weather?.relative_humidity !== undefined) {
-      if (weather.relative_humidity >= 40 && weather.relative_humidity <= 70) {
-        yieldTpa += 0.1
-        details.push(`Optimal RH (${weather.relative_humidity}%) +0.1`)
-      } else {
-        yieldTpa -= 0.1
-        details.push(`Suboptimal RH (${weather.relative_humidity}%) -0.1`)
-      }
-    }
-    if (weather?.precipitation !== undefined) {
-      if (weather.precipitation > 2) {
-        yieldTpa -= 0.2
-        details.push(`High precipitation (${weather.precipitation}mm) -0.2`)
-      }
+
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      toast.error("Please fill in all fields")
+      return
     }
 
-    // Farm logs adjustments
-    if (avg) {
-      if (avg.moisture !== undefined) {
-        if (avg.moisture >= 60 && avg.moisture <= 80) {
-          yieldTpa += 0.2
-          details.push(`Good soil moisture (${avg.moisture.toFixed(1)}%) +0.2`)
-        } else {
-          yieldTpa -= 0.1
-          details.push(`Moisture off-range (${avg.moisture.toFixed(1)}%) -0.1`)
-        }
-      }
-      if (avg.ph !== undefined) {
-        if (avg.ph >= 6.0 && avg.ph <= 7.5) {
-          yieldTpa += 0.2
-          details.push(`Neutral pH (${avg.ph.toFixed(1)}) +0.2`)
-        } else {
-          yieldTpa -= 0.2
-          details.push(`pH suboptimal (${avg.ph.toFixed(1)}) -0.2`)
-        }
-      }
-      if (avg.ndvi !== undefined) {
-        if (avg.ndvi >= 0.7) {
-          yieldTpa += 0.3
-          details.push(`High NDVI (${avg.ndvi.toFixed(2)}) +0.3`)
-        } else if (avg.ndvi >= 0.5) {
-          yieldTpa += 0.1
-          details.push(`Moderate NDVI (${avg.ndvi.toFixed(2)}) +0.1`)
-        } else {
-          yieldTpa -= 0.2
-          details.push(`Low NDVI (${avg.ndvi.toFixed(2)}) -0.2`)
-        }
-      }
-      if (avg.soilType) {
-        const st = avg.soilType
-        const soilFactor: Record<string, number> = {
-          Loam: 0.2,
-          Black: 0.2,
-          Silt: 0.1,
-          Sandy: -0.05,
-          Clay: -0.1,
-        }
-        const add = soilFactor[st] ?? 0
-        yieldTpa += add
-        if (add !== 0) details.push(`Soil type ${st} ${add > 0 ? "+" : ""}${add}`)
-      }
-    }
+    setIsLoading(true)
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
 
-    // Clamp to a reasonable range
-    yieldTpa = Math.min(5.5, Math.max(2.0, yieldTpa))
-    return { value: Math.round(yieldTpa * 10) / 10, details }
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message || "Login failed")
+      }
+
+      // Store token and user data
+      localStorage.setItem("farmtech-token", data.token)
+      localStorage.setItem("farmtech-isLoggedIn", "true")
+      localStorage.setItem("farmtech-email", data.user.email)
+      localStorage.setItem("farmtech-name", data.user.name)
+
+      setIsLoggedIn(true)
+      setIsLoginOpen(false)
+      toast.success("Welcome back, " + data.user.name)
+    } catch (error: any) {
+      toast.error(error.message)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
+  const handleRegister = async () => {
+    if (!name || !email || !password) {
+      toast.error("Please fill in all fields")
+      return
+    }
 
-  const handleLogin = () => {
-    setIsLoggedIn(true)
-    setIsLoginOpen(false)
-    // Don't reset currentPage - stay on the same page after login
+    setIsLoading(true)
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, role: "farmer" }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message || "Registration failed")
+      }
+
+      toast.success("Account created! Please sign in.")
+      // Switch to login tab or just auto-login? For now, let's just notify.
+      // Ideally we could auto-login, but let's keep it simple.
+    } catch (error: any) {
+      toast.error(error.message)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleLogout = () => {
@@ -1738,30 +1512,30 @@ const postTranslations: Record<string, {
     hi: { "Farm Health Monitoring": "फार्म स्वास्थ्य की निगरानी", "Real-time monitoring of your farm's health with AI-powered insights for soil and crops.": "मिट्टी और फसलों के लिए एआई-संचालित अंतर्दृष्टि के साथ अपने खेत के स्वास्थ्य की वास्तविक समय में निगरानी।", "Get Irrigation Setup": "सिंचाई सेटअप", "Connect with local irrigation service providers for setup and maintenance.": "सेटअप और रखरखाव के लिए स्थानीय सिंचाई सेवा प्रदाताओं से जुड़ें।", "Weather Forecasting": "मौसम का विवरण", "Hyperlocal weather predictions to help you make informed farming decisions.": "आपको सूचित खेती के निर्णय लेने में मदद करने के लिए हाइपरलोकल मौसम की भविष्यवाणी।", "Yield Prediction": "उपज की भविष्यवाणी", "Accurate yield forecasting using machine learning and historical data analysis.": "मशीन लर्निंग और ऐतिहासिक डेटा विश्लेषण का उपयोग करके सटीक उपज का पूर्वानुमान।", "Equipment Rental": "उपकरण किराया", "Rent farming equipment from nearby farmers and track equipment location in real-time.": "आस-पास के किसानों से खेती के उपकरण किराए पर लें और वास्तविक समय में उपकरण के स्थान को ट्रैक करें।", "Disease Detection": "रोग का पता लगाना", "AI-powered crop disease identification through photo analysis with treatment recommendations.": "उपचार सिफारिशों के साथ फोटो विश्लेषण के माध्यम से एआई-संचालित फसल रोग की पहचान।", "Learning Hub": "सीखने का केंद्र", "Access farming tutorials, expert advice, and agricultural best practices.": "खेती ट्यूटोरियल, विशेषज्ञ सलाह, और कृषि सर्वोत्तम प्रथाओं तक पहुंचें।", "Insurance": "बीमा", "Crop insurance management and claims processing with AI damage assessment.": "एआई क्षति मूल्यांकन के साथ फसल बीमा प्रबंधन और दावा प्रसंस्करण।", "Marketplace": "बाजार", "Buy and sell crops directly with other farmers and buyers at fair market prices.": "अन्य किसानों और खरीदारों के साथ सीधे उचित बाजार मूल्य पर फसलें खरीदें और बेचें।", "Community": "समुदाय", "Connect with fellow farmers, share experiences, and get expert advice.": "साथी किसानों से जुड़ें, अनुभव साझा करें, और विशेषज्ञ सलाह प्राप्त करें।" },
     mr: { "Farm Health Monitoring": "फार्म आरोग्य निरीक्षण", "Real-time monitoring of your farm's health with AI-powered insights for soil and crops.": "माती आणि पिकांसाठी एआय-चालित अंतर्दृष्टीसह आपल्या शेताच्या आरोग्याचे रिअल-टाइम निरीक्षण.", "Get Irrigation Setup": "सिंचन सेटअप", "Connect with local irrigation service providers for setup and maintenance.": "सेटअप आणि देखभालीसाठी स्थानिक सिंचन सेवा प्रदात्यांशी कनेक्ट व्हा.", "Weather Forecasting": "हवामान तपशील", "Hyperlocal weather predictions to help you make informed farming decisions.": "तुम्हाला माहितीपूर्ण शेती निर्णय घेण्यास मदत करण्यासाठी हायपरलोकल हवामान अंदाज.", "Yield Prediction": "उत्पन्न अंदाज", "Accurate yield forecasting using machine learning and historical data analysis.": "मशीन लर्निंग आणि ऐतिहासिक डेटा विश्लेषणाचा वापर करून अचूक उत्पन्न अंदाज.", "Equipment Rental": "उपकरणे भाड्याने देणे", "Rent farming equipment from nearby farmers and track equipment location in real-time.": "जवळच्या शेतकऱ्यांकडून शेतीची उपकरणे भाड्याने घ्या आणि उपकरणांचे स्थान रिअल-टाइममध्ये ट्रॅक करा.", "Disease Detection": "रोग ओळख", "AI-powered crop disease identification through photo analysis with treatment recommendations.": "उपचार शिफारसींसह फोटो विश्लेषणाद्वारे एआय-चालित पीक रोग ओळख.", "Learning Hub": "शिक्षण केंद्र", "Access farming tutorials, expert advice, and agricultural best practices.": "शेती ट्यूटोरियल, तज्ञांचा सल्ला आणि कृषी सर्वोत्तम पद्धतींमध्ये प्रवेश करा.", "Insurance": "विमा", "Crop insurance management and claims processing with AI damage assessment.": "एआय नुकसान मूल्यांकनासह पीक विमा व्यवस्थापन आणि दावे प्रक्रिया.", "Marketplace": "बाजारपेठ", "Buy and sell crops directly with other farmers and buyers at fair market prices.": "इतर शेतकरी आणि खरेदीदारांसोबत थेट योग्य बाजारभावात पिके खरेदी आणि विक्री करा.", "Community": "समुदाय", "Connect with fellow farmers, share experiences, and get expert advice.": "सहकारी शेतकऱ्यांशी कनेक्ट व्हा, अनुभव शेअर करा आणि तज्ञांचा सल्ला घ्या." },
     kn: {
-        "Farm Health Monitoring": "ಫಾರ್ಮ್ ಆರೋಗ್ಯ ಮೇಲ್ವಿಚಾರಣೆ",
-        "Real-time monitoring of your farm's health with AI-powered insights for soil and crops.": "ಮಣ್ಣು ಮತ್ತು ಬೆಳೆಗಳಿಗಾಗಿ AI ಚಾಲಿತ ಒಳನೋಟಗಳೊಂದಿಗೆ ನಿಮ್ಮ ಫಾರ್ಮ್‌ನ ಆರೋಗ್ಯದ ನೈಜ-ಸಮಯದ ಮೇಲ್ವಿಚಾರಣೆ.",
-        "Get Irrigation Setup": "ನೀರಾವರಿ ಸ್ಥಾಪನೆ ಪಡೆಯಿರಿ",
-        "Connect with local irrigation service providers for setup and maintenance.": "ಸ್ಥಾಪನೆ ಮತ್ತು ನಿರ್ವಹಣೆಗಾಗಿ ಸ್ಥಳೀಯ ನೀರಾವರಿ ಸೇವಾ ಪೂರೈಕೆದಾರರೊಂದಿಗೆ ಸಂಪರ್ಕ ಸಾಧಿಸಿ.",
-        "Weather Forecasting": "ಹವಾಮಾನ ಮುನ್ಸೂಚನೆ",
-        "Hyperlocal weather predictions to help you make informed farming decisions.": "ಮಾಹಿತಿಯುಕ್ತ ಕೃಷಿ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳಲು ನಿಮಗೆ ಸಹಾಯ ಮಾಡಲು ಹೈಪರ್‌ಲೋಕಲ್ ಹವಾಮಾನ ಮುನ್ಸೂಚನೆಗಳು.",
-        "Yield Prediction": "ಇಳುವರಿ ಭವಿಷ್ಯವಾಣಿ",
-        "Accurate yield forecasting using machine learning and historical data analysis.": "ಯಂತ್ರ ಕಲಿಕೆ ಮತ್ತು ಐತಿಹಾಸಿಕ ಡೇಟಾ ವಿಶ್ಲೇಷಣೆಯನ್ನು ಬಳಸಿಕೊಂಡು ನಿಖರವಾದ ಇಳುವರಿ ಮುನ್ಸೂಚನೆ.",
-        "Equipment Rental": "ಉಪಕರಣ ಬಾಡಿಗೆ",
-        "Rent farming equipment from nearby farmers and track equipment location in real-time.": "ಹತ್ತಿರದ ರೈತರಿಂದ ಕೃಷಿ ಉಪಕರಣಗಳನ್ನು ಬಾಡಿಗೆಗೆ ಪಡೆಯಿರಿ ಮತ್ತು ನೈಜ ಸಮಯದಲ್ಲಿ ಉಪಕರಣದ ಸ್ಥಳವನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ.",
-        "Disease Detection": "ರೋಗ ಪತ್ತೆ",
-        "AI-powered crop disease identification through photo analysis with treatment recommendations.": "ಚಿಕಿತ್ಸೆಯ ಶಿಫಾರಸುಗಳೊಂದಿಗೆ ಫೋಟೋ ವಿಶ್ಲೇಷಣೆಯ ಮೂಲಕ AI ಚಾಲಿತ ಬೆಳೆ ರೋಗ ಗುರುತಿಸುವಿಕೆ.",
-        "Learning Hub": "ಕಲಿಕಾ ಕೇಂದ್ರ",
-        "Access farming tutorials, expert advice, and agricultural best practices.": "ಕೃಷಿ ಟ್ಯುಟೋರಿಯಲ್‌ಗಳು, ತಜ್ಞರ ಸಲಹೆ ಮತ್ತು ಕೃಷಿ ಉತ್ತಮ ಅಭ್ಯಾಸಗಳನ್ನು ಪ್ರವೇಶಿಸಿ.",
-        "Insurance": "ವಿಮೆ",
-        "Crop insurance management and claims processing with AI damage assessment.": "AI ಹಾನಿ ಮೌಲ್ಯಮಾಪನದೊಂದಿಗೆ ಬೆಳೆ ವಿಮೆ ನಿರ್ವಹಣೆ ಮತ್ತು ಕ್ಲೈಮ್ ಪ್ರಕ್ರಿಯೆ.",
-        "Marketplace": "ಮಾರುಕಟ್ಟೆ",
-        "Buy and sell crops directly with other farmers and buyers at fair market prices.": "ಇತರ ರೈತರು ಮತ್ತು ಖರೀದಿದಾರರೊಂದಿಗೆ ನೇರವಾಗಿ ನ್ಯಾಯಯುತ ಮಾರುಕಟ್ಟೆ ಬೆಲೆಯಲ್ಲಿ ಬೆಳೆಗಳನ್ನು ಖರೀದಿಸಿ ಮತ್ತು ಮಾರಾಟ ಮಾಡಿ.",
-        "Community": "ಸಮುದಾಯ",
-        "Connect with fellow farmers, share experiences, and get expert advice.": "ಸಹ ರೈತರೊಂದಿಗೆ ಸಂಪರ್ಕ ಸಾಧಿಸಿ, ಅನುಭವಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಿ ಮತ್ತು ತಜ್ಞರ ಸಲಹೆ ಪಡೆಯಿರಿ."
+      "Farm Health Monitoring": "ಫಾರ್ಮ್ ಆರೋಗ್ಯ ಮೇಲ್ವಿಚಾರಣೆ",
+      "Real-time monitoring of your farm's health with AI-powered insights for soil and crops.": "ಮಣ್ಣು ಮತ್ತು ಬೆಳೆಗಳಿಗಾಗಿ AI ಚಾಲಿತ ಒಳನೋಟಗಳೊಂದಿಗೆ ನಿಮ್ಮ ಫಾರ್ಮ್‌ನ ಆರೋಗ್ಯದ ನೈಜ-ಸಮಯದ ಮೇಲ್ವಿಚಾರಣೆ.",
+      "Get Irrigation Setup": "ನೀರಾವರಿ ಸ್ಥಾಪನೆ ಪಡೆಯಿರಿ",
+      "Connect with local irrigation service providers for setup and maintenance.": "ಸ್ಥಾಪನೆ ಮತ್ತು ನಿರ್ವಹಣೆಗಾಗಿ ಸ್ಥಳೀಯ ನೀರಾವರಿ ಸೇವಾ ಪೂರೈಕೆದಾರರೊಂದಿಗೆ ಸಂಪರ್ಕ ಸಾಧಿಸಿ.",
+      "Weather Forecasting": "ಹವಾಮಾನ ಮುನ್ಸೂಚನೆ",
+      "Hyperlocal weather predictions to help you make informed farming decisions.": "ಮಾಹಿತಿಯುಕ್ತ ಕೃಷಿ ನಿರ್ಧಾರಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳಲು ನಿಮಗೆ ಸಹಾಯ ಮಾಡಲು ಹೈಪರ್‌ಲೋಕಲ್ ಹವಾಮಾನ ಮುನ್ಸೂಚನೆಗಳು.",
+      "Yield Prediction": "ಇಳುವರಿ ಭವಿಷ್ಯವಾಣಿ",
+      "Accurate yield forecasting using machine learning and historical data analysis.": "ಯಂತ್ರ ಕಲಿಕೆ ಮತ್ತು ಐತಿಹಾಸಿಕ ಡೇಟಾ ವಿಶ್ಲೇಷಣೆಯನ್ನು ಬಳಸಿಕೊಂಡು ನಿಖರವಾದ ಇಳುವರಿ ಮುನ್ಸೂಚನೆ.",
+      "Equipment Rental": "ಉಪಕರಣ ಬಾಡಿಗೆ",
+      "Rent farming equipment from nearby farmers and track equipment location in real-time.": "ಹತ್ತಿರದ ರೈತರಿಂದ ಕೃಷಿ ಉಪಕರಣಗಳನ್ನು ಬಾಡಿಗೆಗೆ ಪಡೆಯಿರಿ ಮತ್ತು ನೈಜ ಸಮಯದಲ್ಲಿ ಉಪಕರಣದ ಸ್ಥಳವನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ.",
+      "Disease Detection": "ರೋಗ ಪತ್ತೆ",
+      "AI-powered crop disease identification through photo analysis with treatment recommendations.": "ಚಿಕಿತ್ಸೆಯ ಶಿಫಾರಸುಗಳೊಂದಿಗೆ ಫೋಟೋ ವಿಶ್ಲೇಷಣೆಯ ಮೂಲಕ AI ಚಾಲಿತ ಬೆಳೆ ರೋಗ ಗುರುತಿಸುವಿಕೆ.",
+      "Learning Hub": "ಕಲಿಕಾ ಕೇಂದ್ರ",
+      "Access farming tutorials, expert advice, and agricultural best practices.": "ಕೃಷಿ ಟ್ಯುಟೋರಿಯಲ್‌ಗಳು, ತಜ್ಞರ ಸಲಹೆ ಮತ್ತು ಕೃಷಿ ಉತ್ತಮ ಅಭ್ಯಾಸಗಳನ್ನು ಪ್ರವೇಶಿಸಿ.",
+      "Insurance": "ವಿಮೆ",
+      "Crop insurance management and claims processing with AI damage assessment.": "AI ಹಾನಿ ಮೌಲ್ಯಮಾಪನದೊಂದಿಗೆ ಬೆಳೆ ವಿಮೆ ನಿರ್ವಹಣೆ ಮತ್ತು ಕ್ಲೈಮ್ ಪ್ರಕ್ರಿಯೆ.",
+      "Marketplace": "ಮಾರುಕಟ್ಟೆ",
+      "Buy and sell crops directly with other farmers and buyers at fair market prices.": "ಇತರ ರೈತರು ಮತ್ತು ಖರೀದಿದಾರರೊಂದಿಗೆ ನೇರವಾಗಿ ನ್ಯಾಯಯುತ ಮಾರುಕಟ್ಟೆ ಬೆಲೆಯಲ್ಲಿ ಬೆಳೆಗಳನ್ನು ಖರೀದಿಸಿ ಮತ್ತು ಮಾರಾಟ ಮಾಡಿ.",
+      "Community": "ಸಮುದಾಯ",
+      "Connect with fellow farmers, share experiences, and get expert advice.": "ಸಹ ರೈತರೊಂದಿಗೆ ಸಂಪರ್ಕ ಸಾಧಿಸಿ, ಅನುಭವಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಿ ಮತ್ತು ತಜ್ಞರ ಸಲಹೆ ಪಡೆಯಿರಿ."
     },
   };
 
-   const { t, lang, setLang, supportedLangs } = useTranslation();
+  const { t, lang, setLang, supportedLangs } = useTranslation();
   type FeatureKey = keyof typeof featureTranslations["en"]
   // Helper for feature translations
   const ft = (key: string) => featureTranslations[lang][key as FeatureKey]
@@ -1813,10 +1587,10 @@ const postTranslations: Record<string, {
     setIsLoginOpen(true)
   }
 
-  
+
 
   // --- Language Switcher UI ---
-   const LanguageSwitcher = () => (
+  const LanguageSwitcher = () => (
     <div className="flex items-center space-x-2">
       <button onClick={() => setLang('en')} className={`text-sm px-2 py-1 rounded ${lang === 'en' ? 'bg-forest-green text-white' : 'text-gray-700'}`}>EN</button>
       <button onClick={() => setLang('hi')} className={`text-sm px-2 py-1 rounded ${lang === 'hi' ? 'bg-forest-green text-white' : 'text-gray-700'}`}>HI</button>
@@ -1825,649 +1599,55 @@ const postTranslations: Record<string, {
     </div>
   );
 
-    const renderDashboard = () => (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-4xl font-serif font-bold text-forest-green mb-2">{t.dashboardWelcome}</h1>
-            <p className="text-xl text-gray-600">{t.dashboardDescription}</p>
-          </div>
-  
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {features.map((feature, index) => (
-  <Card
-    key={index}
-    // 1. Make the Card a vertical flex container
-    className="group flex flex-col hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden"
-    onClick={() => navigateToPage(feature.page)}
-  >
-    <div
-      className="absolute inset-0 bg-cover bg-center opacity-25 group-hover:opacity-35 transition-opacity duration-300"
-      style={{
-        backgroundImage: `url(${feature.backgroundImage || '/placeholder.svg'})`
-      }}
-    />
-    {/* 2. Add a wrapper that is also a vertical flex container and can grow */}
-    <div className="relative z-10 flex flex-grow flex-col">
-      <CardHeader>
-        <div className="mb-4 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
-        <CardTitle className="text-xl font-serif text-forest-green">{ft(feature.titleKey)}</CardTitle>
-      </CardHeader>
-      {/* 3. Make the CardContent area grow and be a flex container */}
-      <CardContent className="flex flex-grow flex-col">
-        <CardDescription className="text-gray-600 leading-relaxed">{ft(feature.descriptionKey)}</CardDescription>
-        {/* 4. Use `mt-auto` to push the button to the bottom of the card */}
-        <Button className="mt-auto w-full bg-forest-green hover:bg-forest-green/90">{t.openFeature} {ft(feature.titleKey)}</Button>
-      </CardContent>
+  const renderDashboard = () => (
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-serif font-bold text-forest-green mb-2">{t.dashboardWelcome}</h1>
+          <p className="text-xl text-gray-600">{t.dashboardDescription}</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {features.map((feature, index) => (
+            <Card
+              key={index}
+              // 1. Make the Card a vertical flex container
+              className="group flex flex-col hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer relative overflow-hidden"
+              onClick={() => navigateToPage(feature.page)}
+            >
+              <div
+                className="absolute inset-0 bg-cover bg-center opacity-25 group-hover:opacity-35 transition-opacity duration-300"
+                style={{
+                  backgroundImage: `url(${feature.backgroundImage || '/placeholder.svg'})`
+                }}
+              />
+              {/* 2. Add a wrapper that is also a vertical flex container and can grow */}
+              <div className="relative z-10 flex flex-grow flex-col">
+                <CardHeader>
+                  <div className="mb-4 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
+                  <CardTitle className="text-xl font-serif text-forest-green">{ft(feature.titleKey)}</CardTitle>
+                </CardHeader>
+                {/* 3. Make the CardContent area grow and be a flex container */}
+                <CardContent className="flex flex-grow flex-col">
+                  <CardDescription className="text-gray-600 leading-relaxed">{ft(feature.descriptionKey)}</CardDescription>
+                  {/* 4. Use `mt-auto` to push the button to the bottom of the card */}
+                  <Button className="mt-auto w-full bg-forest-green hover:bg-forest-green/90">{t.openFeature} {ft(feature.titleKey)}</Button>
+                </CardContent>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
-  </Card>
-))}
-          </div>
-        </div>
-      </div>
-    )
-  
-    const renderEquipmentRental = () => (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-4xl font-serif font-bold text-forest-green mb-2">{t.equipmentRentalTitle}</h1>
-            <p className="text-xl text-gray-600">{t.equipmentRentalDescription}</p>
-          </div>
-  
-          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg p-6 mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-semibold">{t.knowYourFarmHealth}</h2>
-                </div>
-                <div className="grid md:grid-cols-2 gap-6 mb-8">
-                  {[
-                    {
-                      name: "Digital Soil pH Tester",
-                      owner: "Agri Solutions Inc.",
-                      price: "₹80",
-                      location: "4.5",
-                      rating: 4.9,
-                      image: "/digital1.jpg?height=200&width=300",
-                      available: true,
-                    },
-                    {
-                      name: "3-in-1 Soil Meter",
-                      owner: "FarmTech Supplies",
-                      price: "₹65",
-                      location: "3.8",
-                      rating: 4.7,
-                      image: "/3-1.jpg?height=200&width=300",
-                      available: true,
-                    },
-                  ].map((equipment, index) => (
-                    <Card key={index} className="overflow-hidden">
-                      <div className="relative">
-                        <img
-                          src={equipment.image || "/placeholder.svg"}
-                          alt={equipment.name}
-                          className="w-full h-48 object-cover"
-                        />
-                        {!equipment.available && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                            <span className="text-white font-semibold">{t.currentlyRented}</span>
-                          </div>
-                        )}
-                      </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold text-lg mb-2">{equipment.name}</h3>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-gray-600">{t.owner}: {equipment.owner}</span>
-                          <div className="flex items-center">
-                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                            <span className="ml-1 text-sm">{equipment.rating}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="text-2xl font-bold text-forest-green">{equipment.price}{t.pricePerDay}</span>
-                          <span className="text-gray-500 flex items-center">
-                            <MapPin className="h-4 w-4 mr-1" />
-                            {equipment.location} {t.kmAway}
-                          </span>
-                        </div>
-                        <Button
-                          className="w-full bg-forest-green hover:bg-forest-green/90"
-                          disabled={!equipment.available}
-                        >
-                          {equipment.available ? t.rentNow : t.notAvailable}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-  
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-semibold">{t.availableEquipment}</h2>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <Filter className="h-4 w-4 mr-2" />
-                      {t.filter}
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Search className="h-4 w-4 mr-2" />
-                      {t.search}
-                    </Button>
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-6">
-                  {[
-                    {
-                      name: "John Deere 5075E Tractor",
-                      owner: "Rajesh Kumar",
-                      price: "₹3500",
-                      location: "2.3",
-                      rating: 4.8,
-                      image: "/john-deere-tractor-in-field.png",
-                      available: true,
-                    },
-                    {
-                      name: "Mahindra 575 DI Tractor",
-                      owner: "Suresh Patel",
-                      price: "₹3200",
-                      location: "3.1",
-                      rating: 4.6,
-                      image: "/mahindra-tractor-farming.png",
-                      available: true,
-                    },
-                    {
-                      name: "Combine Harvester",
-                      owner: "Amit Singh",
-                      price: "₹8500",
-                      location: "5.2",
-                      rating: 4.9,
-                      image: "/combine-harvester-wheat.png",
-                      available: false,
-                    },
-                    {
-                      name: "Rotary Tiller",
-                      owner: "Priya Sharma",
-                      price: "₹1800",
-                      location: "1.8",
-                      rating: 4.7,
-                      image: "/rotary-tiller-farming-equipment.png",
-                      available: true,
-                    },
-                  ].map((equipment, index) => (
-                    <Card key={index} className="overflow-hidden">
-                      <div className="relative">
-                        <img
-                          src={equipment.image || "/placeholder.svg"}
-                          alt={equipment.name}
-                          className="w-full h-48 object-cover"
-                        />
-                        {!equipment.available && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                            <span className="text-white font-semibold">{t.currentlyRented}</span>
-                          </div>
-                        )}
-                      </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold text-lg mb-2">{equipment.name}</h3>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-gray-600">{t.owner}: {equipment.owner}</span>
-                          <div className="flex items-center">
-                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                            <span className="ml-1 text-sm">{equipment.rating}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="text-2xl font-bold text-forest-green">{equipment.price}{t.pricePerDay}</span>
-                          <span className="text-gray-500 flex items-center">
-                            <MapPin className="h-4 w-4 mr-1" />
-                            {equipment.location} {t.kmAway}
-                          </span>
-                        </div>
-                        <Button
-                          className="w-full bg-forest-green hover:bg-forest-green/90"
-                          disabled={!equipment.available}
-                        >
-                          {equipment.available ? t.rentNow : t.notAvailable}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </div>
-  
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t.yourRentals}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                      <div>
-                        <p className="font-semibold">Kubota Tractor</p>
-                        <p className="text-sm text-gray-600">{t.endsInDays.replace('{count}', '2')}</p>
-                      </div>
-                      <Button size="sm" variant="outline">
-                        {t.track}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-  
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t.quickActions}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button className="w-full bg-transparent" variant="outline">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    {t.scheduleRental}
-                  </Button>
-                  <Button className="w-full bg-transparent" variant="outline">
-                    <Truck className="h-4 w-4 mr-2" />
-                    {t.listMyEquipment}
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  
-    const renderMarketplace = () => (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-4xl font-serif font-bold text-forest-green mb-2">{t.marketplaceTitle}</h1>
-            <p className="text-xl text-gray-600">{t.marketplaceDescription}</p>
-          </div>
-  
-          <Tabs defaultValue="buy" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
-              <TabsTrigger value="buy">{t.buyCrops}</TabsTrigger>
-              <TabsTrigger value="sell">{t.sellCrops}</TabsTrigger>
-              <TabsTrigger value="prices">{t.marketPrices}</TabsTrigger>
-            </TabsList>
-  
-            <TabsContent value="buy">
-              <div className="grid lg:grid-cols-4 gap-6">
-                {[
-                  {
-                    name: "Premium Wheat",
-                    farmer: "Rajesh Kumar",
-                    price: "₹35/kg",
-                    quantity: "500",
-                    location: "Punjab, India",
-                    rating: 4.8,
-                    image: "/golden-wheat-grains-harvest.png",
-                    trending: true,
-                  },
-                  {
-                    name: "Organic Rice",
-                    farmer: "Priya Sharma",
-                    price: "₹75/kg",
-                    quantity: "300",
-                    location: "West Bengal, India",
-                    rating: 4.9,
-                    image: "/organic-rice-grains-white.png",
-                    trending: false,
-                  },
-                  {
-                    name: "Fresh Corn",
-                    farmer: "Amit Singh",
-                    price: "₹45/kg",
-                    quantity: "750",
-                    location: "Uttar Pradesh, India",
-                    rating: 4.6,
-                    // image: "/placeholder.svg?height=200&width=300",
-                    image: "/corn.jpg",
-                    trending: true,
-                  },
-                  {
-                    name: "Basmati Rice",
-                    farmer: "Suresh Patel",
-                    price: "₹95/kg",
-                    quantity: "200",
-                    location: "Haryana, India",
-                    rating: 4.9,
-                    // image: "/placeholder.svg?height=200&width=300",
-                    image: "/rice.jpg",
-                    trending: false,
-                  },
-                ].map((crop, index) => (
-                  <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="relative">
-                      <img src={crop.image || "/placeholder.svg"} alt={crop.name} className="w-full h-48 object-cover" />
-                      {crop.trending && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                          {t.trending}
-                        </div>
-                      )}
-                      <Button size="sm" variant="secondary" className="absolute top-2 right-2">
-                        <Heart className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold text-lg mb-2">{crop.name}</h3>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-600">{t.by} {crop.farmer}</span>
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                          <span className="ml-1 text-sm">{crop.rating}</span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">{crop.quantity} {t.kgAvailable}</p>
-                      <p className="text-sm text-gray-600 mb-4 flex items-center">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        {crop.location}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-2xl font-bold text-forest-green">{crop.price}</span>
-                        <Button size="sm" className="bg-forest-green hover:bg-forest-green/90">
-                          {t.buyNow}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-  
-            <TabsContent value="sell">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t.listYourCrops}</CardTitle>
-                  <CardDescription>{t.sellYourHarvest}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="crop-name">{t.cropName}</Label>
-                        <Input id="crop-name" placeholder="e.g., Premium Wheat" />
-                      </div>
-                      <div>
-                        <Label htmlFor="quantity">{t.quantityKg}</Label>
-                        <Input id="quantity" type="number" placeholder="500" />
-                      </div>
-                      <div>
-                        <Label htmlFor="price">{t.pricePerKg}</Label>
-                        <Input id="price" type="number" step="0.01" placeholder="2.50" />
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="location">{t.location}</Label>
-                        <Input id="location" placeholder="City, State" />
-                      </div>
-                      <div>
-                        <Label htmlFor="harvest-date">{t.harvestDate}</Label>
-                        <Input id="harvest-date" type="date" />
-                      </div>
-                      <div>
-                        <Label htmlFor="description">{t.description}</Label>
-                        <Input id="description" placeholder="Organic, pesticide-free..." />
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <Label>{t.uploadPhotos}</Label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                      <Camera className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                      <p className="text-gray-600">{t.uploadPrompt}</p>
-                    </div>
-                  </div>
-                  <Button className="w-full bg-forest-green hover:bg-forest-green/90">{t.listCropForSale}</Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
+  )
 
-            <TabsContent value="prices">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl text-forest-green">{t.marketPrices}</CardTitle>
-                  <CardDescription>Live commodity prices from mandis across India</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {/* Controls */}
-                  <div className="mb-6 space-y-4">
-                    <div className="flex flex-wrap gap-4 items-center">
-                      <div className="flex-1 min-w-[200px]">
-                        <Input
-                          placeholder={t.searchCommodity}
-                          value={marketSearchTerm}
-                          onChange={(e) => setMarketSearchTerm(e.target.value)}
-                          className="w-full"
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <Select value={sortField} onValueChange={setSortField}>
-                          <SelectTrigger className="w-[130px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Commodity">{t.commodity}</SelectItem>
-                            <SelectItem value="State">{t.state}</SelectItem>
-                            <SelectItem value="District">{t.district}</SelectItem>
-                            <SelectItem value="Modal_x0020_Price">{t.modalPrice}</SelectItem>
-                            <SelectItem value="Max_x0020_Price">{t.maxPrice}</SelectItem>
-                            <SelectItem value="Min_x0020_Price">{t.minPrice}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSortDirection(sortDirection === "asc" ? "desc" : "asc")}
-                        >
-                          {sortDirection === "asc" ? t.ascending : t.descending}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setMarketSearchTerm("")
-                            setSortField("Commodity")
-                            setSortDirection("asc")
-                          }}
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
+  const renderEquipmentRental = () => (
+    <EquipmentRental t={t} />
+  )
 
-                    {/* Column Visibility Controls */}
-                    <div className="border rounded-lg p-4 bg-gray-50">
-                      <h4 className="font-medium mb-2">{t.showColumns}:</h4>
-                      <div className="flex flex-wrap gap-3">
-                        {Object.entries(visibleColumns).map(([column, visible]) => (
-                          <label key={column} className="flex items-center space-x-2 text-sm">
-                            <input
-                              type="checkbox"
-                              checked={visible}
-                              onChange={(e) => 
-                                setVisibleColumns(prev => ({...prev, [column]: e.target.checked}))
-                              }
-                              className="rounded border-gray-300"
-                            />
-                            <span>
-                              {column === 'State' && t.state}
-                              {column === 'District' && t.district}
-                              {column === 'Market' && t.market}
-                              {column === 'Commodity' && t.commodity}
-                              {column === 'Variety' && t.variety}
-                              {column === 'Grade' && t.grade}
-                              {column === 'Arrival_Date' && t.arrivalDate}
-                              {column === 'Min_x0020_Price' && t.minPrice}
-                              {column === 'Max_x0020_Price' && t.maxPrice}
-                              {column === 'Modal_x0020_Price' && t.modalPrice}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Data Table */}
-                  {isLoadingMarketData ? (
-                    <div className="text-center py-8">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-forest-green"></div>
-                      <p className="mt-2">Loading market data...</p>
-                    </div>
-                  ) : marketDataError ? (
-                    <div className="text-center py-8">
-                      <div className="text-red-600 mb-4">
-                        <p className="font-medium">Error loading market data</p>
-                        <p className="text-sm">{marketDataError}</p>
-                      </div>
-                      <Button 
-                        onClick={loadMarketData}
-                        className="bg-forest-green hover:bg-forest-green/90"
-                      >
-                        <RotateCcw className="h-4 w-4 mr-2" />
-                        Retry
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="mb-4 flex justify-between items-center">
-                        <div className="text-sm text-gray-600">
-                          {t.totalRecords}: {filteredMarketData.length}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">{t.showRecords}:</span>
-                          <Select 
-                            value={displayLimit.toString()} 
-                            onValueChange={(value) => setDisplayLimit(parseInt(value))}
-                          >
-                            <SelectTrigger className="w-20">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="25">25</SelectItem>
-                              <SelectItem value="50">50</SelectItem>
-                              <SelectItem value="100">100</SelectItem>
-                              <SelectItem value="200">200</SelectItem>
-                              <SelectItem value="500">500</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="overflow-x-auto border rounded-lg">
-                        <div className="min-w-[800px]">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                {visibleColumns.State && <TableHead>{t.state}</TableHead>}
-                                {visibleColumns.District && <TableHead>{t.district}</TableHead>}
-                                {visibleColumns.Market && <TableHead>{t.market}</TableHead>}
-                                {visibleColumns.Commodity && <TableHead>{t.commodity}</TableHead>}
-                                {visibleColumns.Variety && <TableHead>{t.variety}</TableHead>}
-                                {visibleColumns.Grade && <TableHead>{t.grade}</TableHead>}
-                                {visibleColumns.Arrival_Date && <TableHead>{t.arrivalDate}</TableHead>}
-                                {visibleColumns.Min_x0020_Price && <TableHead>{t.minPrice} (₹)</TableHead>}
-                                {visibleColumns.Max_x0020_Price && <TableHead>{t.maxPrice} (₹)</TableHead>}
-                                {visibleColumns.Modal_x0020_Price && <TableHead>{t.modalPrice} (₹)</TableHead>}
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {filteredMarketData.slice(0, displayLimit).map((item, index) => (
-                                <TableRow key={index} className="hover:bg-gray-50">
-                                  {visibleColumns.State && <TableCell>{item.State}</TableCell>}
-                                  {visibleColumns.District && <TableCell>{item.District}</TableCell>}
-                                  {visibleColumns.Market && <TableCell>{item.Market}</TableCell>}
-                                  {visibleColumns.Commodity && (
-                                    <TableCell className="font-medium">
-                                      {marketSearchTerm && item.Commodity?.toLowerCase().includes(marketSearchTerm.toLowerCase()) ? (
-                                        <span className="bg-yellow-200 px-1 rounded">
-                                          {item.Commodity}
-                                        </span>
-                                      ) : (
-                                        item.Commodity
-                                      )}
-                                    </TableCell>
-                                  )}
-                                  {visibleColumns.Variety && <TableCell>{item.Variety}</TableCell>}
-                                  {visibleColumns.Grade && <TableCell>{item.Grade}</TableCell>}
-                                  {visibleColumns.Arrival_Date && <TableCell>{item.Arrival_Date}</TableCell>}
-                                  {visibleColumns.Min_x0020_Price && (
-                                    <TableCell className="text-green-600 font-medium">
-                                      {item.Min_x0020_Price ? `₹${item.Min_x0020_Price}` : '-'}
-                                    </TableCell>
-                                  )}
-                                  {visibleColumns.Max_x0020_Price && (
-                                    <TableCell className="text-red-600 font-medium">
-                                      {item.Max_x0020_Price ? `₹${item.Max_x0020_Price}` : '-'}
-                                    </TableCell>
-                                  )}
-                                  {visibleColumns.Modal_x0020_Price && (
-                                    <TableCell className="text-blue-600 font-bold">
-                                      {item.Modal_x0020_Price ? `₹${item.Modal_x0020_Price}` : '-'}
-                                    </TableCell>
-                                  )}
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </div>
-                      {filteredMarketData.length > displayLimit && (
-                        <div className="mt-4 text-center">
-                          <Button 
-                            variant="outline" 
-                            onClick={() => setDisplayLimit(prev => prev + 50)}
-                            className="mr-2"
-                          >
-                            {t.loadMore}
-                          </Button>
-                          <span className="text-sm text-gray-600">
-                            Showing {Math.min(displayLimit, filteredMarketData.length)} of {filteredMarketData.length} records
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {/* Data Source Attribution */}
-                  <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center text-sm text-blue-800">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      <span className="font-medium">{t.dataSourceNote}</span>
-                    </div>
-                    <div className="mt-1 text-xs text-blue-600">
-                      Source: <a 
-                        href="https://www.data.gov.in/resource/current-daily-price-various-commodities-various-markets-mandi" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="underline hover:text-blue-800"
-                      >
-                        Government of India - Current Daily Price of Various Commodities
-                      </a>
-                    </div>
-                    <div className="text-xs text-blue-600 mt-1">
-                      {mounted ? (
-                        <span>
-                          Fetched on: {new Date().toLocaleDateString('en-IN', { 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric',
-                            weekday: 'long'
-                          })}
-                        </span>
-                      ) : (
-                        <span suppressHydrationWarning>Fetched on: --</span>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-    )
+  const renderMarketplace = () => (
+    <Marketplace t={t} />
+  )
   // --- Community Posts Render ---
   const renderCommunity = () => (
     <div className="min-h-screen bg-gray-50">
@@ -2482,7 +1662,7 @@ const postTranslations: Record<string, {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>{t.communityPosts}</CardTitle>
-                  
+
                   {/* --- MODIFICATION START: New Post Dialog --- */}
                   <Dialog open={isNewPostDialogOpen} onOpenChange={setIsNewPostDialogOpen}>
                     <DialogTrigger asChild>
@@ -2503,7 +1683,7 @@ const postTranslations: Record<string, {
                           rows={5}
                           className="w-full"
                         />
-                         <div>
+                        <div>
                           <Label htmlFor="post-image" className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-forest-green">
                             <Camera className="h-4 w-4" />
                             Add a photo (optional)
@@ -2512,20 +1692,20 @@ const postTranslations: Record<string, {
                         </div>
 
                         {newPostImagePreview && (
-                           <div className="relative mt-2">
-                             <img src={newPostImagePreview} alt="Post preview" className="w-full h-auto max-h-60 object-cover rounded-lg" />
-                             <Button
-                               variant="destructive"
-                               size="icon"
-                               className="absolute top-2 right-2 h-7 w-7"
-                               onClick={() => {
-                                 setNewPostImage(null);
-                                 setNewPostImagePreview(null);
-                               }}
-                             >
-                               <X className="h-4 w-4" />
-                             </Button>
-                           </div>
+                          <div className="relative mt-2">
+                            <img src={newPostImagePreview} alt="Post preview" className="w-full h-auto max-h-60 object-cover rounded-lg" />
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2 h-7 w-7"
+                              onClick={() => {
+                                setNewPostImage(null);
+                                setNewPostImagePreview(null);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
                         )}
                       </div>
                       <DialogFooter>
@@ -2539,7 +1719,7 @@ const postTranslations: Record<string, {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                
+
                 {/* --- MODIFICATION START: Render posts from state --- */}
                 {communityPosts.map((post, index) => {
                   const selected = postLang[index] || lang;
@@ -2566,16 +1746,16 @@ const postTranslations: Record<string, {
                           </div>
                         </div>
                         {translationsForAuthor && ( // Only show toggle for posts that have translations
-                            <div>
-                              <button
-                                onClick={() => setPostLang((s) => ({ ...s, [index]: cycleLang(selected) }))}
-                                className="text-xs px-2 py-1 rounded border bg-forest-green hover:bg-forest-green/90 text-white"
-                                aria-label="Toggle translation language"
-                                title="Toggle translation (EN → HI → MR → EN)"
-                              >
-                                {selected.toUpperCase()}
-                              </button>
-                            </div>
+                          <div>
+                            <button
+                              onClick={() => setPostLang((s) => ({ ...s, [index]: cycleLang(selected) }))}
+                              className="text-xs px-2 py-1 rounded border bg-forest-green hover:bg-forest-green/90 text-white"
+                              aria-label="Toggle translation language"
+                              title="Toggle translation (EN → HI → MR → EN)"
+                            >
+                              {selected.toUpperCase()}
+                            </button>
+                          </div>
                         )}
                       </div>
                       <p className="mb-4 leading-relaxed whitespace-pre-wrap">{contentText}</p>
@@ -2612,7 +1792,7 @@ const postTranslations: Record<string, {
               </CardContent>
             </Card>
           </div>
-          
+
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -2639,7 +1819,7 @@ const postTranslations: Record<string, {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>{t.popularTopics}</CardTitle>
@@ -2850,83 +2030,31 @@ const postTranslations: Record<string, {
     try {
       setAiLoading(true)
       setAiAnswer(null)
-      const apiKey = "AIzaSyCZI-JMIqUt_XCU5Tb_0Sf0v6n7gxNi_Jw"
-  const system = `You are an expert Indian agriculture assistant. Answer briefly, in simple, practical steps.
-Only answer farming-related questions. If a query is not about farming, politely refuse.
-Prefer India-specific context when relevant (climate zones, monsoon, crops).`
-  const langInstr: Record<"en"|"hi"|"mr"|"kn", string> = {
-    en: "Respond in English.",
-    hi: "Respond in Hindi (हिन्दी) using Devanagari script.",
-    mr: "Respond in Marathi (मराठी) using Devanagari script.",
-    kn: "Respond in Kannada (ಕನ್ನಡ) using Kannada script."
-  }
-  const userPrompt = `${system}\nResponse language: ${langInstr[aiResponseLang]}\n\nUser question: ${q}`
 
-      async function generateV1beta(model: string, prompt: string): Promise<string> {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
-        const resp = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': apiKey
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [{ text: prompt }]
-              }
-            ]
-          })
-        })
-        if (!resp.ok) {
-          const text = await resp.text().catch(() => '')
-          throw new Error(`Gemini v1beta HTTP ${resp.status}: ${text}`)
-        }
-        const data = await resp.json()
-        const candidate = data?.candidates?.[0]
-        const partText = candidate?.content?.parts?.[0]?.text
-        if (!partText) throw new Error('Empty response')
-        return partText as string
+      const system = `You are an expert Indian agriculture assistant. Answer briefly, in simple, practical steps.
+        Only answer farming-related questions. If a query is not about farming, politely refuse.
+        Prefer India-specific context when relevant (climate zones, monsoon, crops).`
+      const langInstr: Record<"en" | "hi" | "mr" | "kn", string> = {
+        en: "Respond in English.",
+        hi: "Respond in Hindi (हिन्दी) using Devanagari script.",
+        mr: "Respond in Marathi (मराठी) using Devanagari script.",
+        kn: "Respond in Kannada (ಕನ್ನಡ) using Kannada script."
+      }
+      const userPrompt = `${system}\nResponse language: ${langInstr[aiResponseLang]}\n\nUser question: ${q}`
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: userPrompt })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get response')
       }
 
-      async function generateV1(model: string, prompt: string): Promise<string> {
-        const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`
-        const resp = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: 'user',
-                parts: [{ text: prompt }]
-              }
-            ]
-          })
-        })
-        if (!resp.ok) {
-          const text = await resp.text().catch(() => '')
-          throw new Error(`Gemini v1 HTTP ${resp.status}: ${text}`)
-        }
-        const data = await resp.json()
-        const candidate = data?.candidates?.[0]
-        const partText = candidate?.content?.parts?.[0]?.text
-        if (!partText) throw new Error('Empty response')
-        return partText as string
-      }
-
-      let answer = ''
-      try {
-        // Try v1beta with the newest flash first
-        answer = await generateV1beta('gemini-2.5-flash', userPrompt)
-      } catch (e0) {
-        try {
-          answer = await generateV1beta('gemini-1.5-flash', userPrompt)
-        } catch (e1) {
-          // Fallback to v1 1.0 pro
-          answer = await generateV1('gemini-1.0-pro', userPrompt)
-        }
-      }
-      setAiAnswer(answer || "Sorry, I couldn't generate an answer.")
+      setAiAnswer(data.text)
     } catch (err: any) {
       setAiAnswer("There was an error getting an answer. Please try again.")
       console.error("Gemini error", err)
@@ -3131,8 +2259,8 @@ Prefer India-specific context when relevant (climate zones, monsoon, crops).`
                 <Input id="notes" value={entryNotes} onChange={(e) => setEntryNotes(e.target.value)} placeholder="Optional notes" />
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button className="bg-forest-green hover:bg-forest-green/90" onClick={addHealthEntry}>Save Entry</Button>
-                <Button variant="outline" onClick={addSampleData}>Use Sample Data</Button>
+                <Button className="bg-forest-green hover:bg-forest-green/90" onClick={() => { }}>Save Entry</Button>
+                <Button variant="outline" onClick={() => { }}>Use Sample Data</Button>
               </div>
             </CardContent>
           </Card>
@@ -3202,564 +2330,13 @@ Prefer India-specific context when relevant (climate zones, monsoon, crops).`
   )
 
   const renderWeatherForecast = () => (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-serif font-bold text-forest-green mb-4">{t.weatherForecastTitle}</h1>
-          <p className="text-xl text-muted-foreground">{t.weatherForecastDescription}</p>
-        </div>
-
-        {/* Current Weather Summary */}
-        {weather && (
-          <Card className="mb-8 weather-gradient">
-            <CardHeader>
-              <CardTitle className="text-2xl text-forest-green flex items-center">
-                <Sun className="h-6 w-6 mr-2" />
-                Current Weather Conditions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-4 gap-6">
-                <div className="text-center p-4 bg-card rounded-lg">
-                  <div className="text-3xl font-bold text-blue-600">{weather.temperature ?? "--"}°C</div>
-                  <div className="text-gray-600">Temperature</div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    {(weather.temperature ?? 0) > 35 ? "Very Hot" : 
-                     (weather.temperature ?? 0) > 30 ? "Hot" :
-                     (weather.temperature ?? 0) > 25 ? "Warm" :
-                     (weather.temperature ?? 0) > 15 ? "Mild" : "Cool"}
-                  </div>
-                </div>
-                <div className="text-center p-4 bg-card rounded-lg">
-                  <div className="text-3xl font-bold text-green-600">{weather.relative_humidity ?? "--"}%</div>
-                  <div className="text-gray-600">Humidity</div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    {(weather.relative_humidity ?? 0) > 80 ? "Very Humid" : 
-                     (weather.relative_humidity ?? 0) > 60 ? "Humid" :
-                     (weather.relative_humidity ?? 0) > 40 ? "Moderate" : "Dry"}
-                  </div>
-                </div>
-                <div className="text-center p-4 bg-card rounded-lg">
-                  <div className="text-3xl font-bold text-purple-600">{weather.precipitation || 0}mm</div>
-                  <div className="text-gray-600">Precipitation</div>
-                  <div className="text-sm text-gray-500 mt-1">Last Hour</div>
-                </div>
-                <div className="text-center p-4 bg-card rounded-lg">
-                  <div className="text-3xl font-bold text-orange-600">{weather.wind_speed ?? "--"}m/s</div>
-                  <div className="text-gray-600">Wind Speed</div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    {(weather.wind_speed ?? 0) > 10 ? "Strong" : 
-                     (weather.wind_speed ?? 0) > 5 ? "Moderate" : "Light"}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* 7-Day Forecast */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl text-forest-green flex items-center">
-              <CloudRain className="h-6 w-6 mr-2" />
-              {t.sevenDayForecast}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {forecastLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading weather forecast...</div>
-            ) : forecastError ? (
-              <div className="text-center py-8 text-red-600">{forecastError}</div>
-            ) : forecast.length > 0 ? (
-              <div className="space-y-4">
-                {forecast.map((day, i) => {
-                  const weatherInfo = getWeatherIcon(day.weather_code)
-                  const today = i === 0
-                  return (
-                    <div key={i} className={`p-4 rounded-lg border ${today ? 'bg-green-50 border-green-200' : 'bg-card'}`}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="text-lg font-semibold w-16">
-                            {today ? 'Today' : day.day}
-                          </div>
-                          <weatherInfo.icon className="h-8 w-8 text-blue-500" />
-                          <div className="text-muted-foreground">{weatherInfo.desc}</div>
-                        </div>
-                        <div className="flex items-center space-x-8">
-                          <div className="text-center">
-                            <div className="text-2xl font-bold">{day.temp_max}°</div>
-                            <div className="text-sm text-muted-foreground">{day.temp_min}°</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-blue-600 font-semibold">{day.precipitation}mm</div>
-                            <div className="text-xs text-muted-foreground">Rain</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-muted-foreground">{day.wind_speed}m/s</div>
-                            <div className="text-xs text-muted-foreground">Wind</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">No forecast data available</div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Farming Insights */}
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl text-forest-green flex items-center">
-                <Sprout className="h-5 w-5 mr-2" />
-                Farming Recommendations
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {forecast.length > 0 && (() => {
-                  const nextThreeDays = forecast.slice(0, 3)
-                  const totalRain = nextThreeDays.reduce((sum, day) => sum + day.precipitation, 0)
-                  const avgTemp = nextThreeDays.reduce((sum, day) => sum + day.temp_max, 0) / 3
-                  const maxWind = Math.max(...nextThreeDays.map(day => day.wind_speed))
-                  
-                  const recommendations = []
-                  
-                  if (totalRain > 20) {
-                    recommendations.push({
-                      icon: "🌧️",
-                      text: "Heavy rainfall expected. Prepare drainage systems and avoid irrigation for the next 3 days."
-                    })
-                  } else if (totalRain < 2) {
-                    recommendations.push({
-                      icon: "💧",
-                      text: "Dry conditions ahead. Plan for adequate irrigation, especially for young plants."
-                    })
-                  }
-                  
-                  if (avgTemp > 35) {
-                    recommendations.push({
-                      icon: "🌡️",
-                      text: "High temperatures expected. Provide shade for sensitive crops and increase watering frequency."
-                    })
-                  } else if (avgTemp < 15) {
-                    recommendations.push({
-                      icon: "❄️",
-                      text: "Cool weather ahead. Consider frost protection for sensitive plants."
-                    })
-                  }
-                  
-                  if (maxWind > 15) {
-                    recommendations.push({
-                      icon: "💨",
-                      text: "Strong winds expected. Secure greenhouse structures and support tall plants."
-                    })
-                  }
-                  
-                  if (recommendations.length === 0) {
-                    recommendations.push({
-                      icon: "✅",
-                      text: "Weather conditions are favorable for most farming activities."
-                    })
-                  }
-                  
-                  return recommendations.map((rec, idx) => (
-                    <div key={idx} className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                      <span className="text-2xl">{rec.icon}</span>
-                      <p className="text-sm text-muted-foreground">{rec.text}</p>
-                    </div>
-                  ))
-                })()}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl text-forest-green flex items-center">
-                <BarChart3 className="h-5 w-5 mr-2" />
-                Weekly Weather Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {forecast.length > 0 && (() => {
-                const totalRain = forecast.reduce((sum, day) => sum + day.precipitation, 0)
-                const avgTemp = Math.round(forecast.reduce((sum, day) => sum + (day.temp_max + day.temp_min) / 2, 0) / forecast.length)
-                const maxTemp = Math.max(...forecast.map(day => day.temp_max))
-                const minTemp = Math.min(...forecast.map(day => day.temp_min))
-                const rainyDays = forecast.filter(day => day.precipitation > 1).length
-                const sunnyDays = forecast.filter(day => day.weather_code === 0).length
-                
-                return (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-blue-50 p-3 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-600">{totalRain.toFixed(1)}mm</div>
-                        <div className="text-sm text-gray-600">Total Rainfall</div>
-                      </div>
-                      <div className="bg-orange-50 p-3 rounded-lg">
-                        <div className="text-2xl font-bold text-orange-600">{avgTemp}°C</div>
-                        <div className="text-sm text-gray-600">Avg Temperature</div>
-                      </div>
-                      <div className="bg-red-50 p-3 rounded-lg">
-                        <div className="text-2xl font-bold text-red-600">{maxTemp}°C</div>
-                        <div className="text-sm text-gray-600">Max Temperature</div>
-                      </div>
-                      <div className="bg-purple-50 p-3 rounded-lg">
-                        <div className="text-2xl font-bold text-purple-600">{minTemp}°C</div>
-                        <div className="text-sm text-gray-600">Min Temperature</div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Rainy Days:</span>
-                        <span className="font-semibold">{rainyDays}/7</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Sunny Days:</span>
-                        <span className="font-semibold">{sunnyDays}/7</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Best for Farming:</span>
-                        <span className="font-semibold text-green-600">
-                          {7 - rainyDays - sunnyDays < rainyDays ? "Early Week" : "Mid Week"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })()}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Agricultural Calendar */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-xl text-forest-green flex items-center">
-              <Calendar className="h-5 w-5 mr-2" />
-              This Week's Agricultural Activities
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="border-l-4 border-green-500 pl-4">
-                <h4 className="font-semibold text-green-700">Recommended Activities</h4>
-                <ul className="text-sm text-gray-600 mt-2 space-y-1">
-                  <li>• Monitor soil moisture levels daily</li>
-                  <li>• Check for pest and disease symptoms</li>
-                  <li>• Apply organic fertilizer if soil conditions are right</li>
-                  <li>• Prune excess vegetation for better air circulation</li>
-                </ul>
-              </div>
-              <div className="border-l-4 border-yellow-500 pl-4">
-                <h4 className="font-semibold text-yellow-700">Weather-Dependent Tasks</h4>
-                <ul className="text-sm text-gray-600 mt-2 space-y-1">
-                  <li>• Plan irrigation based on rainfall predictions</li>
-                  <li>• Schedule harvesting for clear weather days</li>
-                  <li>• Prepare drainage systems if heavy rain expected</li>
-                  <li>• Adjust greenhouse ventilation based on temperature</li>
-                </ul>
-              </div>
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h4 className="font-semibold text-blue-700">Seasonal Considerations</h4>
-                <ul className="text-sm text-gray-600 mt-2 space-y-1">
-                  <li>• September is ideal for winter crop preparation</li>
-                  <li>• Consider companion planting for pest control</li>
-                  <li>• Plan for crop rotation in upcoming season</li>
-                  <li>• Harvest monsoon crops before peak winter</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="text-center">
-          <Button
-            onClick={() => setCurrentPage("dashboard")}
-            className="bg-forest-green hover:bg-forest-green/90"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {t.backToDashboard}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <WeatherForecast t={t} />
   )
-
-  // Disease Detection State
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
-  const [imagePreview, setImagePreview] = React.useState<string | null>(null)
-  const [diseaseLoading, setDiseaseLoading] = React.useState(false)
-  const [diseaseResult, setDiseaseResult] = React.useState<any>(null)
-  const [diseaseError, setDiseaseError] = React.useState<string | null>(null)
-  const [selectedApproach, setSelectedApproach] = React.useState<'torch' | 'keras'>('torch')
-  const [selectedCrop, setSelectedCrop] = React.useState<string>('')
-
-  const cropOptions = ['apple', 'cherry', 'corn', 'grape', 'peach', 'pepper', 'tomato', 'strawberry', 'potato']
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
-      // Create preview
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string)
-      }
-      reader.readAsDataURL(file)
-      // Reset previous results
-      setDiseaseResult(null)
-      setDiseaseError(null)
-    }
-  }
-
-  const analyzeDiseaseImage = async () => {
-    if (!selectedFile) {
-      setDiseaseError('Please select an image file first')
-      return
-    }
-
-    if (selectedApproach === 'keras' && !selectedCrop) {
-      setDiseaseError('Please select a crop when using per-crop analysis')
-      return
-    }
-
-    setDiseaseLoading(true)
-    setDiseaseError(null)
-
-    try {
-      const result = await predictDisease(selectedFile, selectedApproach, selectedApproach === 'keras' ? selectedCrop : undefined)
-      setDiseaseResult(result)
-    } catch (error) {
-      console.error('Disease detection error:', error)
-      setDiseaseError(error instanceof Error ? error.message : 'An error occurred during disease detection')
-    } finally {
-      setDiseaseLoading(false)
-    }
-  }
-
-  const resetDiseaseDetection = () => {
-    setSelectedFile(null)
-    setImagePreview(null)
-    setDiseaseResult(null)
-    setDiseaseError(null)
-    setSelectedCrop('')
-  }
 
   const renderDiseaseDetection = () => (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-serif font-bold text-forest-green mb-4">{t.diseaseDetectionTitle}</h1>
-          <p className="text-xl text-gray-600">{t.diseaseDetectionDescription}</p>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-8 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl text-forest-green">{t.uploadForAnalysis}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Analysis Method Selection */}
-              <div>
-                <Label htmlFor="approach" className="text-base font-medium">Analysis Method</Label>
-                <Select value={selectedApproach} onValueChange={(value: 'torch' | 'keras') => setSelectedApproach(value)}>
-                  <SelectTrigger id="approach">
-                    <SelectValue placeholder="Select analysis method" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="torch">General Disease Detection (39 classes)</SelectItem>
-                    <SelectItem value="keras">Crop-Specific Analysis</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Crop Selection for Keras approach */}
-              {selectedApproach === 'keras' && (
-                <div>
-                  <Label htmlFor="crop" className="text-base font-medium">Select Crop</Label>
-                  <Select value={selectedCrop} onValueChange={setSelectedCrop}>
-                    <SelectTrigger id="crop">
-                      <SelectValue placeholder="Select your crop" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {cropOptions.map(crop => (
-                        <SelectItem key={crop} value={crop}>{crop.charAt(0).toUpperCase() + crop.slice(1)}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              {/* File Upload */}
-              <div>
-                <Label htmlFor="image-upload" className="text-base font-medium">Upload Plant Image</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  {imagePreview ? (
-                    <div className="space-y-4">
-                      <img 
-                        src={imagePreview} 
-                        alt="Preview" 
-                        className="max-w-full max-h-64 mx-auto rounded-lg"
-                      />
-                      <Button 
-                        variant="outline" 
-                        onClick={resetDiseaseDetection}
-                        className="mr-2"
-                      >
-                        <RotateCcw className="h-4 w-4 mr-2" />
-                        Change Image
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                      <p className="text-gray-600 mb-4">{t.dropImagePrompt}</p>
-                      <input
-                        id="image-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileSelect}
-                        className="hidden"
-                      />
-                      <Button 
-                        onClick={() => document.getElementById('image-upload')?.click()}
-                        className="bg-forest-green hover:bg-forest-green/90"
-                      >
-                        <Camera className="h-4 w-4 mr-2" />
-                        {t.uploadImage}
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Analyze Button */}
-              <Button 
-                onClick={analyzeDiseaseImage}
-                disabled={!selectedFile || diseaseLoading || (selectedApproach === 'keras' && !selectedCrop)}
-                className="w-full bg-forest-green hover:bg-forest-green/90"
-              >
-                {diseaseLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Microscope className="h-4 w-4 mr-2" />
-                    Analyze Disease
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl text-forest-green">Analysis Results</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {diseaseError && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-700">{diseaseError}</p>
-                </div>
-              )}
-
-              {diseaseResult && (
-                <div className="space-y-4">
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <h3 className="text-lg font-semibold text-green-800 mb-2">
-                      Disease Detected: {diseaseResult.disease_name}
-                    </h3>
-                    <p className="text-green-700">
-                      Confidence: {(diseaseResult.confidence * 100).toFixed(1)}%
-                    </p>
-                  </div>
-
-                  {diseaseResult.description && (
-                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <h4 className="font-semibold text-blue-800 mb-2">Description</h4>
-                      <p className="text-blue-700 text-sm">{diseaseResult.description}</p>
-                    </div>
-                  )}
-
-                  {diseaseResult.prevention_steps && (
-                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <h4 className="font-semibold text-yellow-800 mb-2">Prevention Steps</h4>
-                      <p className="text-yellow-700 text-sm">{diseaseResult.prevention_steps}</p>
-                    </div>
-                  )}
-
-                  {diseaseResult.supplement && (
-                    <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                      <h4 className="font-semibold text-purple-800 mb-2">Recommended Supplement</h4>
-                      <p className="text-purple-700 text-sm mb-2">{diseaseResult.supplement.name}</p>
-                      {diseaseResult.supplement.buy_link && (
-                        <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Buy Supplement
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {!diseaseError && !diseaseResult && !diseaseLoading && (
-                <div className="text-center py-8 text-gray-500">
-                  Upload an image and click "Analyze Disease" to get started
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl text-forest-green">{t.commonCropDiseases}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { name: 'Leaf Blight', crop: 'Wheat', symptoms: 'Brown spots on leaves', severity: 'High' },
-                { name: 'Powdery Mildew', crop: 'Tomato', symptoms: 'White powdery coating', severity: 'Medium' },
-                { name: 'Rust Disease', crop: 'Corn', symptoms: 'Orange-red pustules', severity: 'High' }
-              ].map((disease, i) => (
-                <div key={i} className="bg-white p-4 rounded-lg border">
-                  <h4 className="font-semibold text-gray-800">{disease.name}</h4>
-                  <p className="text-sm text-gray-600"><strong>Crop:</strong> {disease.crop}</p>
-                  <p className="text-sm text-gray-600"><strong>Symptoms:</strong> {disease.symptoms}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="text-center">
-          <Button
-            onClick={() => setCurrentPage("dashboard")}
-            className="bg-forest-green hover:bg-forest-green/90"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {t.backToDashboard}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <DiseaseDetection t={t} language={lang} />
   )
 
-  // Yield Prediction State
-  const [yieldLoading, setYieldLoading] = React.useState(false)
-  const [yieldResult, setYieldResult] = React.useState<any>(null)
-  const [yieldError, setYieldError] = React.useState<string | null>(null)
-  const [showYieldForm, setShowYieldForm] = React.useState(false)
-  
   // Form state for yield prediction
   const [yieldFormData, setYieldFormData] = React.useState(() => {
     if (typeof window !== "undefined") {
@@ -3811,7 +2388,7 @@ Prefer India-specific context when relevant (climate zones, monsoon, crops).`
         if (Array.isArray(meta.soil_types) && meta.soil_types.length) setSoilTypes(meta.soil_types)
         if (Array.isArray(meta.crop_types) && meta.crop_types.length) setCropTypes(meta.crop_types)
       })
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   // Save yieldFormData to localStorage whenever it changes
@@ -3821,434 +2398,9 @@ Prefer India-specific context when relevant (climate zones, monsoon, crops).`
     }
   }, [yieldFormData]);
 
-  const handleYieldFormChange = (field: string, value: string) => {
-    setYieldFormData((prev: any) => ({ ...prev, [field]: value }))
-  }
 
-  const validateYieldForm = (): string | null => {
-    const requiredFields = [
-      'N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall',
-      'fert_temperature', 'fert_humidity', 'moisture', 'soil_type', 'crop_type',
-      'nitrogen', 'potassium', 'phosphorous'
-    ]
-    
-    for (const field of requiredFields) {
-      if (!yieldFormData[field as keyof typeof yieldFormData]) {
-        return `Please fill in all required fields. Missing: ${field.replace('_', ' ')}`
-      }
-    }
-    
-    // Validate numeric fields
-    const numericFields = [
-      'N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall',
-      'fert_temperature', 'fert_humidity', 'moisture', 'nitrogen', 'potassium', 'phosphorous'
-    ]
-    
-    for (const field of numericFields) {
-      const value = parseFloat(yieldFormData[field as keyof typeof yieldFormData])
-      if (isNaN(value)) {
-        return `${field.replace('_', ' ')} must be a valid number`
-      }
-    }
-    
-    return null
-  }
 
-  const predictYieldAndFertilizer = async () => {
-    const validationError = validateYieldForm()
-    if (validationError) {
-      setYieldError(validationError)
-      return
-    }
 
-    setYieldLoading(true)
-    setYieldError(null)
-
-    try {
-      const payload = {
-        N: parseFloat(yieldFormData.N),
-        P: parseFloat(yieldFormData.P),
-        K: parseFloat(yieldFormData.K),
-        temperature: parseFloat(yieldFormData.temperature),
-        humidity: parseFloat(yieldFormData.humidity),
-        ph: parseFloat(yieldFormData.ph),
-        rainfall: parseFloat(yieldFormData.rainfall),
-        fert_temperature: parseFloat(yieldFormData.fert_temperature),
-        fert_humidity: parseFloat(yieldFormData.fert_humidity),
-        moisture: parseFloat(yieldFormData.moisture),
-        soil_type: yieldFormData.soil_type,
-        crop_type: yieldFormData.crop_type,
-        nitrogen: parseFloat(yieldFormData.nitrogen),
-        potassium: parseFloat(yieldFormData.potassium),
-        phosphorous: parseFloat(yieldFormData.phosphorous)
-      }
-
-      const result = await getYieldAndFertilizer(payload)
-      setYieldResult(result)
-      setShowYieldForm(false)
-    } catch (error) {
-      console.error('Yield prediction error:', error)
-      setYieldError(error instanceof Error ? error.message : 'An error occurred during yield prediction')
-    } finally {
-      setYieldLoading(false)
-    }
-  }
-
-  const resetYieldPrediction = () => {
-    setYieldResult(null)
-    setYieldError(null)
-    setShowYieldForm(false)
-    setYieldFormData({
-      N: '',
-      P: '',
-      K: '',
-      temperature: '',
-      humidity: '',
-      ph: '',
-      rainfall: '',
-      fert_temperature: '',
-      fert_humidity: '',
-      moisture: '',
-      soil_type: '',
-      crop_type: '',
-      nitrogen: '',
-      potassium: '',
-      phosphorous: ''
-    })
-  }
-
-  const renderYieldPrediction = () => (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-serif font-bold text-forest-green mb-4">{t.yieldPredictionTitle}</h1>
-          <p className="text-xl text-gray-600">{t.yieldPredictionDescription}</p>
-        </div>
-
-        {!showYieldForm && !yieldResult && (
-          <div className="text-center mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl text-forest-green">Get AI-Powered Recommendations</CardTitle>
-                <CardDescription>
-                  Enter your soil and environmental conditions to get crop and fertilizer recommendations
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={() => setShowYieldForm(true)}
-                  className="bg-forest-green hover:bg-forest-green/90"
-                  size="lg"
-                >
-                  <BarChart3 className="h-5 w-5 mr-2" />
-                  Start Analysis
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {showYieldForm && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="text-2xl text-forest-green">Soil & Environmental Data</CardTitle>
-              <CardDescription>
-                Please provide accurate measurements for best results
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {yieldError && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-700">{yieldError}</p>
-                </div>
-              )}
-
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="N">Nitrogen (N) Content</Label>
-                  <Input
-                    id="N"
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 90"
-                    value={yieldFormData.N}
-                    onChange={(e) => handleYieldFormChange('N', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="P">Phosphorus (P) Content</Label>
-                  <Input
-                    id="P"
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 42"
-                    value={yieldFormData.P}
-                    onChange={(e) => handleYieldFormChange('P', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="K">Potassium (K) Content</Label>
-                  <Input
-                    id="K"
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 43"
-                    value={yieldFormData.K}
-                    onChange={(e) => handleYieldFormChange('K', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="temperature">Temperature (°C)</Label>
-                  <Input
-                    id="temperature"
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 20.8"
-                    value={yieldFormData.temperature}
-                    onChange={(e) => handleYieldFormChange('temperature', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="humidity">Humidity (%)</Label>
-                  <Input
-                    id="humidity"
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 82"
-                    value={yieldFormData.humidity}
-                    onChange={(e) => handleYieldFormChange('humidity', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="ph">Soil pH</Label>
-                  <Input
-                    id="ph"
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 6.5"
-                    value={yieldFormData.ph}
-                    onChange={(e) => handleYieldFormChange('ph', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="rainfall">Rainfall (mm)</Label>
-                  <Input
-                    id="rainfall"
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 202"
-                    value={yieldFormData.rainfall}
-                    onChange={(e) => handleYieldFormChange('rainfall', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="fert_temperature">Field Temperature (°C)</Label>
-                  <Input
-                    id="fert_temperature"
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 26"
-                    value={yieldFormData.fert_temperature}
-                    onChange={(e) => handleYieldFormChange('fert_temperature', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="fert_humidity">Field Humidity (%)</Label>
-                  <Input
-                    id="fert_humidity"
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 52"
-                    value={yieldFormData.fert_humidity}
-                    onChange={(e) => handleYieldFormChange('fert_humidity', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="moisture">Soil Moisture (%)</Label>
-                  <Input
-                    id="moisture"
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 38"
-                    value={yieldFormData.moisture}
-                    onChange={(e) => handleYieldFormChange('moisture', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="nitrogen">Nitrogen Value</Label>
-                  <Input
-                    id="nitrogen"
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 37"
-                    value={yieldFormData.nitrogen}
-                    onChange={(e) => handleYieldFormChange('nitrogen', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="potassium">Potassium Value</Label>
-                  <Input
-                    id="potassium"
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 0"
-                    value={yieldFormData.potassium}
-                    onChange={(e) => handleYieldFormChange('potassium', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phosphorous">Phosphorus Value</Label>
-                  <Input
-                    id="phosphorous"
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g., 0"
-                    value={yieldFormData.phosphorous}
-                    onChange={(e) => handleYieldFormChange('phosphorous', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="soil_type">Soil Type</Label>
-                  <Select value={yieldFormData.soil_type} onValueChange={(value) => handleYieldFormChange('soil_type', value)}>
-                    <SelectTrigger id="soil_type">
-                      <SelectValue placeholder="Select soil type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {soilTypes.map(type => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="crop_type">Crop Type</Label>
-                  <Select value={yieldFormData.crop_type} onValueChange={(value) => handleYieldFormChange('crop_type', value)}>
-                    <SelectTrigger id="crop_type">
-                      <SelectValue placeholder="Select crop type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {cropTypes.map(type => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="flex space-x-4 pt-4">
-                <Button 
-                  onClick={predictYieldAndFertilizer}
-                  disabled={yieldLoading}
-                  className="bg-forest-green hover:bg-forest-green/90"
-                >
-                  {yieldLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      Get Recommendations
-                    </>
-                  )}
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => setShowYieldForm(false)}
-                  disabled={yieldLoading}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {yieldResult && (
-          <div className="grid lg:grid-cols-2 gap-8 mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl text-forest-green">Recommended Crop</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-green-600 mb-2">
-                    {yieldResult.recommended_crop}
-                  </div>
-                  <p className="text-gray-600">Best crop for your conditions</p>
-                  <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                    <p className="text-green-700 text-sm">
-                      This crop is recommended based on your soil's NPK levels, environmental conditions, and climate data.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl text-forest-green">Recommended Fertilizer</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-blue-600 mb-2">
-                    {yieldResult.fertilizer}
-                  </div>
-                  <p className="text-gray-600">Optimal fertilizer for your soil</p>
-                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                    <p className="text-blue-700 text-sm">
-                      This fertilizer composition will provide the best nutrients for your selected crop type and soil conditions.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {yieldResult && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="text-2xl text-forest-green">{t.benefits}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="bg-green-50 p-4 rounded">
-                  <h4 className="font-semibold text-green-800">{t.betterPlanning}</h4>
-                  <p className="text-green-700 text-sm">{t.betterPlanningDesc}</p>
-                </div>
-                <div className="bg-blue-50 p-4 rounded">
-                  <h4 className="font-semibold text-blue-800">{t.maximizeRevenue}</h4>
-                  <p className="text-blue-700 text-sm">{t.maximizeRevenueDesc}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="text-center space-x-4">
-          {yieldResult && (
-            <Button
-              onClick={resetYieldPrediction}
-              variant="outline"
-              className="border-forest-green text-forest-green hover:bg-forest-green hover:text-white"
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              New Analysis
-            </Button>
-          )}
-          <Button
-            onClick={() => setCurrentPage("dashboard")}
-            className="bg-forest-green hover:bg-forest-green/90"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {t.backToDashboard}
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
 
   const renderLoggedInHeader = () => (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
@@ -4271,47 +2423,42 @@ Prefer India-specific context when relevant (climate zones, monsoon, crops).`
           <nav className="hidden md:flex items-center space-x-6">
             <button
               onClick={() => navigateToPage("dashboard")}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                currentPage === "dashboard" ? "bg-forest-green text-white" : "text-gray-700 hover:text-forest-green"
-              }`}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${currentPage === "dashboard" ? "bg-forest-green text-white" : "text-gray-700 hover:text-forest-green"
+                }`}
             >
               <Home className="h-4 w-4" />
               <span>{t.dashboard}</span>
             </button>
             <button
               onClick={() => navigateToPage("equipment-rental")}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                currentPage === "equipment-rental"
-                  ? "bg-forest-green text-white"
-                  : "text-gray-700 hover:text-forest-green"
-              }`}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${currentPage === "equipment-rental"
+                ? "bg-forest-green text-white"
+                : "text-gray-700 hover:text-forest-green"
+                }`}
             >
               <Truck className="h-4 w-4" />
               <span>{t.equipment}</span>
             </button>
             <button
               onClick={() => navigateToPage("marketplace")}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                currentPage === "marketplace" ? "bg-forest-green text-white" : "text-gray-700 hover:text-forest-green"
-              }`}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${currentPage === "marketplace" ? "bg-forest-green text-white" : "text-gray-700 hover:text-forest-green"
+                }`}
             >
               <ShoppingCart className="h-4 w-4" />
               <span>{t.marketplace}</span>
             </button>
             <button
               onClick={() => navigateToPage("community")}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                currentPage === "community" ? "bg-forest-green text-white" : "text-gray-700 hover:text-forest-green"
-              }`}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${currentPage === "community" ? "bg-forest-green text-white" : "text-gray-700 hover:text-forest-green"
+                }`}
             >
               <Users className="h-4 w-4" />
               <span>{t.community}</span>
             </button>
             <button
               onClick={() => navigateToPage("learning-hub")}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                currentPage === "learning-hub" ? "bg-forest-green text-white" : "text-gray-700 hover:text-forest-green"
-              }`}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${currentPage === "learning-hub" ? "bg-forest-green text-white" : "text-gray-700 hover:text-forest-green"
+                }`}
             >
               <BookOpen className="h-4 w-4" />
               <span>{t.learning}</span>
@@ -4372,7 +2519,7 @@ Prefer India-specific context when relevant (climate zones, monsoon, crops).`
         {currentPage === "irrigation" && renderIrrigation()}
         {currentPage === "crop-analysis" && renderCropMonitoring()}
         {currentPage === "weather" && renderWeatherForecast()}
-        {currentPage === "yield-prediction" && renderYieldPrediction()}
+        {currentPage === "yield-prediction" && <YieldPrediction t={t} />}
         {currentPage === "disease-detection" && renderDiseaseDetection()}
         {currentPage === "insurance" && renderInsurance()}
       </div>
@@ -4382,7 +2529,7 @@ Prefer India-specific context when relevant (climate zones, monsoon, crops).`
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-  <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -4449,15 +2596,15 @@ Prefer India-specific context when relevant (climate zones, monsoon, crops).`
                           onChange={(e) => setPassword(e.target.value)}
                         />
                       </div>
-                      <Button className="w-full bg-forest-green hover:bg-forest-green/90" onClick={handleLogin}>
-                        {t.createAccount}
+                      <Button className="w-full bg-forest-green hover:bg-forest-green/90" onClick={handleRegister} disabled={isLoading}>
+                        {isLoading ? "Creating Account..." : t.createAccount}
                       </Button>
                       <div className="text-center text-sm text-gray-500">{t.continueWith}</div>
                       <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm" onClick={handleLogin}>
+                        <Button variant="outline" size="sm" onClick={() => toast.info("Google login coming soon!")}>
                           {t.google}
                         </Button>
-                        <Button variant="outline" size="sm" onClick={handleLogin}>
+                        <Button variant="outline" size="sm" onClick={() => toast.info("Facebook login coming soon!")}>
                           {t.facebook}
                         </Button>
                       </div>
@@ -4482,15 +2629,15 @@ Prefer India-specific context when relevant (climate zones, monsoon, crops).`
                           onChange={(e) => setPassword(e.target.value)}
                         />
                       </div>
-                      <Button className="w-full bg-forest-green hover:bg-forest-green/90" onClick={handleLogin}>
-                        {t.signIn}
+                      <Button className="w-full bg-forest-green hover:bg-forest-green/90" onClick={handleLogin} disabled={isLoading}>
+                        {isLoading ? "Signing In..." : t.signIn}
                       </Button>
                       <div className="text-center text-sm text-gray-500">{t.continueWith}</div>
                       <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm" onClick={handleLogin}>
+                        <Button variant="outline" size="sm" onClick={() => toast.info("Google login coming soon!")}>
                           {t.google}
                         </Button>
-                        <Button variant="outline" size="sm" onClick={handleLogin}>
+                        <Button variant="outline" size="sm" onClick={() => toast.info("Facebook login coming soon!")}>
                           {t.facebook}
                         </Button>
                       </div>
