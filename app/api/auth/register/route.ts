@@ -37,8 +37,9 @@ export async function POST(req: Request) {
         )
     } catch (error) {
         console.error("Registration error:", error)
+        const errorMessage = error instanceof Error ? error.message : "Unknown error"
         return NextResponse.json(
-            { message: "Internal server error" },
+            { message: "Internal server error", details: process.env.NODE_ENV === 'development' ? errorMessage : undefined },
             { status: 500 }
         )
     }
